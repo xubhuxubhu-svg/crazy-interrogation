@@ -3,12 +3,12 @@ const path=require('path');
 const http=require('http');
 const express=require('express');
 const {Server}=require('socket.io');
-const Engine=require('./public/engine.js');
+const Engine=require('./engine.js');
 
 const PORT=process.env.PORT||3000;
 const TURN_MS=75000;          // 每次發言的時間限制
 const app=express();
-app.use(express.static(path.join(__dirname,'public')));
+app.use(express.static(__dirname));
 app.get('/health',(req,res)=>res.send('ok'));
 const server=http.createServer(app);
 const io=new Server(server,{cors:{origin:'*'}});
