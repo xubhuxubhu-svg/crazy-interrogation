@@ -1,0 +1,1874 @@
+<title>瘋狂審訊室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@900&display=swap">
+<style>
+/* 審訊室：刻意採單一深色場景。上方左右兩格分別是審問官與嫌犯，下方是對話與發問列，右側為卷宗 */
+:root{
+  --room:#121418; --panel:#1b1e24; --panel2:#232730; --line:#323844;
+  --fg:#ece6d8; --muted:#a19d92; --lamp:#e8a93a; --lampInk:#1d1407; --alarm:#d9483b; --ok:#6fbf8a; --cool:#7fb2e8;
+  --display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{background:var(--room);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:16px 32px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);font-weight:900;margin:0;letter-spacing:.04em;text-wrap:balance;line-height:1.25}
+.label{font-size:12px;letter-spacing:.22em;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s,background .15s}
+button:hover{border-color:#566072}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:700}
+.primary{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:900;letter-spacing:.15em;padding:12px 18px;border-radius:10px;font-size:16px}
+.ghost{background:transparent}
+input,select{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px;min-width:0}
+select{font-size:14px;width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* 首頁 */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:center;padding-block:10px}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero h1{font-size:clamp(40px,8vw,76px);letter-spacing:.08em}
+.hero h1 small{display:block;font-family:var(--body);font-size:14px;letter-spacing:.4em;color:var(--lamp);margin-bottom:10px;font-weight:700}
+.hero p{margin:12px 0 0;color:var(--muted);max-width:34em}
+.homeBtns{display:flex;flex-direction:column;gap:10px;margin-top:20px;max-width:360px}
+.homeBtns button{text-align:left;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.homeBtns button span{font-size:12px;font-weight:400;letter-spacing:0;opacity:.85}
+.duoPreview{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.duoPreview svg{width:100%;height:auto;aspect-ratio:400/360;border-radius:12px;border:1px solid var(--line);display:block}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.rules .card p{margin:0;font-size:14px;color:var(--muted)}
+
+/* 設定 */
+.setupGrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.setupGrid{grid-template-columns:minmax(0,1fr)}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto}
+.cases{display:flex;flex-direction:column;gap:8px}
+.caseBtn{text-align:left;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px 14px}
+.caseBtn strong{font-size:16px}
+.caseBtn .st{color:var(--lamp);letter-spacing:.1em;white-space:nowrap;font-size:14px}
+.caseBtn small{color:var(--muted);font-size:12px;grid-column:1/-1}
+.caseBtn[aria-pressed="true"] small,.caseBtn[aria-pressed="true"] .st{color:#4a3510}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.looks button{font-size:13px;padding:7px 4px}
+.previewPair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.previewPair figure{margin:0;display:flex;flex-direction:column;gap:4px}
+.previewPair svg{width:100%;height:auto;aspect-ratio:400/360;border-radius:10px;border:1px solid var(--line);display:block}
+.previewPair figcaption{font-size:12px;color:var(--muted);text-align:center}
+.joinRow{display:flex;gap:8px}
+.joinRow input{flex:1;text-transform:uppercase;letter-spacing:.3em}
+.warn{font-size:13px;color:#f0b38a;background:#2a1f18;border:1px solid #5a3a26;border-radius:8px;padding:8px 10px}
+
+/* 等待室 */
+.lobby{max-width:520px;margin:30px auto;text-align:center;align-items:center}
+.code{font-family:var(--display);font-size:56px;letter-spacing:.3em;color:var(--lamp);line-height:1}
+.spinner{width:42px;height:42px;border-radius:50%;border:4px solid #2a2f38;border-top-color:var(--lamp);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 遊戲畫面 */
+.gameTop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.gameTop h2{font-size:clamp(20px,3vw,30px)}
+.gameTop small{display:block;font-family:var(--body);font-size:12px;letter-spacing:.3em;color:var(--lamp);font-weight:700;margin-bottom:4px}
+.topRight{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.roundsBox{display:flex;flex-direction:column;gap:4px;min-width:170px}
+.roundsBox .r{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.roundsBox b{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.tierTag{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px}
+.bar{height:7px;background:#2a2f38;border-radius:4px;overflow:hidden}
+.bar div{height:100%;border-radius:4px;transition:width .4s,background .3s}
+.gameGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:980px){.gameGrid{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.who{background:var(--panel);display:flex;flex-direction:column;min-width:0}
+.who svg{display:block;width:100%;height:auto;aspect-ratio:400/360;max-width:100%}
+.whoTag{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px}
+.whoTag .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.whoTag b{font-size:14px}
+.whoTag .you{font-size:11px;font-weight:700;background:var(--cool);color:#0b1624;padding:1px 7px;border-radius:999px}
+.chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#5e9c7a;color:#0f120e}
+.val{margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.talk{padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.bubble{font-size:clamp(15px,2vw,18px);line-height:1.6;min-height:1.6em}
+.bubble b{font-size:.75em;letter-spacing:.12em;margin-right:8px}
+.bubble.q b{color:var(--cool)}
+.bubble.a b{color:var(--lamp)}
+.monitor{display:flex;align-items:center;gap:10px}
+#ecg{flex:1;min-width:0;height:34px;background:#0c110e;border-radius:6px;border:1px solid #1f2a24}
+.bpm{font-variant-numeric:tabular-nums;font-size:12px;color:#7fdc9a;white-space:nowrap}
+.bpm strong{font-size:18px;margin-left:4px}
+.turnLine{padding:8px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);background:#16191e;display:flex;justify-content:space-between;gap:8px}
+.turnLine strong{color:var(--fg)}
+.ask{display:flex;gap:8px;padding:10px 14px 12px;background:#16191e}
+.ask input{flex:1}
+.mic{width:46px;flex:none;display:grid;place-items:center;border-radius:10px;padding:0}
+.mic svg{width:20px;height:20px}
+.mic.on{background:var(--alarm);border-color:var(--alarm);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.send{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:700;padding:10px 16px;border-radius:10px}
+.micNote{padding:0 14px 10px;font-size:13px;color:#f0b38a;background:#16191e}
+.overlay{position:absolute;inset:0;background:rgba(10,11,14,.9);display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto;z-index:5}
+.result{max-width:520px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.stamp{align-self:flex-start;font-size:12px;letter-spacing:.3em;border:1.5px solid;padding:2px 8px;border-radius:4px;font-weight:700}
+.scoreRow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.scoreBig{font-family:var(--display);font-size:54px;line-height:1;color:var(--lamp);font-variant-numeric:tabular-nums}
+.rank{font-size:20px;font-weight:900}
+.parts{display:flex;flex-direction:column;gap:6px}
+.part{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.5em;gap:8px;align-items:center;font-size:13px}
+.part span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.resBtns{display:flex;gap:8px;flex-wrap:wrap}
+.resBtns button{flex:1 1 auto}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.side .card{padding:14px;gap:10px}
+#hints{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+#hints li{font-size:14px;line-height:1.6;padding:8px 10px;background:#2a2516;border:1px solid #4a3d1c;border-radius:8px;color:#f3dfb0}
+#hints li.idle{background:transparent;border-style:dashed;border-color:var(--line);color:var(--muted);font-size:13px}
+.file p{margin:0;font-size:14px}
+.file .secret{background:#2a1a1c;border:1px solid #5a2c30;border-radius:8px;padding:8px 10px;font-size:13px}
+.file .secret b{color:#f19a8e;display:block;font-size:12px;letter-spacing:.15em}
+.evid{display:flex;flex-direction:column;gap:6px}
+.evid button,.evid .ev{text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.evid strong{font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.evid strong em{font-style:normal;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
+.evid .done strong em{color:var(--ok)}
+.evid span{font-size:12px;color:var(--muted);line-height:1.5}
+.locked{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.log{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.log p{margin:0;line-height:1.6}
+.log .q{color:#cfe0ff}
+.log .sys{color:var(--lamp);font-size:13px}
+.log .gain{font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px;background:#3e2020;color:#f19a8e;white-space:nowrap}
+.log .gain.down{background:#203a2a;color:#8be0a8}
+footer{font-size:12px;color:var(--muted);text-align:center;letter-spacing:.14em}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lamp);color:var(--lampInk);font-weight:700;padding:10px 16px;border-radius:10px;z-index:20;max-width:90vw}
+@media (prefers-reduced-motion:reduce){.mic.on,.spinner{animation:none}}
+</style>
+<div class="wrap">
+
+<!-- ===== 首頁 ===== -->
+<section id="scrHome">
+  <div class="hero">
+    <div>
+      <h1><small>心理戰・語音審訊</small>瘋狂審訊室</h1>
+      <p>十回合到三十回合的攻防。當審問官，用證物和心理戰術讓嫌犯崩潰認罪；當嫌犯，守住說詞撐到最後。可以和朋友連線對戰，沒有對手時由電腦接手。</p>
+      <div class="homeBtns">
+        <button class="primary" id="goSolo">單人遊戲<span>和電腦對戰，選擇當審問官或嫌犯</span></button>
+        <button id="goOnline">連線對戰<span>和朋友各演一角，手機電腦都能玩</span></button>
+      </div>
+    </div>
+    <div class="duoPreview" aria-hidden="true"><svg id="homeInter" viewBox="0 0 400 360"></svg><svg id="homeSus" viewBox="0 0 400 360"></svg></div>
+  </div>
+  <div class="rules">
+    <div class="card"><h3>當審問官</h3><p>打字或用說的發問，點證物出示。戳破嫌犯的說詞、找出犯案動機，讓壓力衝到 90% 他就會崩潰認罪。</p></div>
+    <div class="card"><h3>當嫌犯</h3><p>你知道真相，也有一套事先準備好的說詞。面對每件證物想好藉口，前後別矛盾、別說溜嘴，撐過所有回合就贏了。</p></div>
+    <div class="card"><h3>評分與稱號</h3><p>審問官依破案效率、證物運用、戳破說詞等評分，稱號從實習警員到刑事警察局局長；嫌犯則從當庭認罪到無罪釋放。</p></div>
+  </div>
+</section>
+
+<!-- ===== 設定 ===== -->
+<section id="scrSetup" hidden>
+  <div class="gameTop">
+    <h2 id="setupTitle"><small>準備開庭</small>單人遊戲</h2>
+    <button class="ghost" id="setupBack">回首頁</button>
+  </div>
+  <div class="setupGrid" style="margin-top:16px">
+    <div class="card">
+      <div class="label">選擇案件（星數為審問官的難度）</div>
+      <div class="cases" id="caseList"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="label">你要扮演</div>
+        <div class="seg" id="roleSeg"></div>
+        <div class="label">回合數</div>
+        <div class="seg" id="limitSeg"></div>
+        <p class="note">回合越少越刺激，分數加成越高：短局 ×1.1、標準 ×1.0、長局 ×0.9。</p>
+      </div>
+      <div class="card">
+        <div class="previewPair">
+          <figure><svg id="pvInter" viewBox="0 0 400 360" aria-label="審問官預覽"></svg><figcaption>審問官</figcaption></figure>
+          <figure><svg id="pvSus" viewBox="0 0 400 360" aria-label="嫌犯預覽"></svg><figcaption>嫌犯</figcaption></figure>
+        </div>
+        <div class="label">審問官外觀</div>
+        <div class="looks" id="lookInter"></div>
+        <div class="label">嫌犯外觀</div>
+        <div class="looks" id="lookSus"></div>
+      </div>
+      <div class="card" id="soloActions">
+        <button class="primary" id="startSolo">開始審訊</button>
+      </div>
+      <div class="card" id="onlineActions" hidden>
+        <div class="warn" id="onlineWarn" hidden>連線對戰需要把遊戲放到伺服器（Render）上才能使用。現在可以先玩單人模式。</div>
+        <button class="primary" id="quickBtn">快速配對</button>
+        <button id="createBtn">建立房間，邀請朋友</button>
+        <div class="label">加入朋友的房間</div>
+        <div class="joinRow"><input id="joinCode" maxlength="4" placeholder="房號" aria-label="房號" autocomplete="off"><button id="joinBtn">加入</button></div>
+        <p class="note">快速配對 20 秒內沒有找到真人對手，會自動改由電腦對戰。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 等待室 ===== -->
+<section id="scrLobby" hidden>
+  <div class="card lobby">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2 id="lobbyTitle">等待對手加入</h2>
+    <div class="code" id="lobbyCode" hidden></div>
+    <p class="note" id="lobbyText"></p>
+    <div class="resBtns" style="width:100%"><button class="primary" id="lobbyAI">改與電腦對戰</button><button id="lobbyCancel">取消</button></div>
+  </div>
+</section>
+
+<!-- ===== 遊戲 ===== -->
+<section id="scrGame" hidden>
+  <div class="gameTop">
+    <h2 id="gTitle"><small id="gSub"></small></h2>
+    <div class="topRight">
+      <div class="roundsBox">
+        <div class="r"><span class="label">剩餘回合</span><span class="tierTag" id="tierTag">充裕</span><b id="roundNum">20</b></div>
+        <div class="bar"><div id="roundBar"></div></div>
+      </div>
+      <button class="ghost" id="leaveBtn">離開</button>
+    </div>
+  </div>
+  <div class="gameGrid" style="margin-top:14px">
+    <section class="stage" aria-label="偵訊室">
+      <div class="duo">
+        <div class="who">
+          <svg id="svgInter" viewBox="0 0 400 360" role="img" aria-label="審問官動畫"></svg>
+          <div class="whoTag"><div class="row"><b id="nameInter">審問官</b><span class="you" id="youInter" hidden>你</span><span class="chip" id="chipInter">冷靜</span><span class="val" id="valInter">怒氣 10%</span></div><div class="bar"><div id="barInter"></div></div></div>
+        </div>
+        <div class="who">
+          <svg id="svgSus" viewBox="0 0 400 360" role="img" aria-label="嫌犯動畫"></svg>
+          <div class="whoTag"><div class="row"><b id="nameSus">嫌犯</b><span class="you" id="youSus" hidden>你</span><span class="chip" id="chipSus">囂張挑釁</span><span class="val" id="valSus">壓力 5%</span></div><div class="bar"><div id="barSus"></div></div></div>
+        </div>
+      </div>
+      <div class="talk">
+        <div class="bubble q" aria-live="polite"><b id="bqName">審問官</b><span id="sayInter">……</span></div>
+        <div class="bubble a" aria-live="polite"><b id="baName">嫌犯</b><span id="saySus">……</span></div>
+        <div class="monitor"><canvas id="ecg" aria-hidden="true"></canvas><div class="bpm">嫌犯心跳<strong id="bpm">70</strong></div></div>
+      </div>
+      <div class="turnLine"><span id="turnText">準備中</span><strong id="timer"></strong></div>
+      <form class="ask" id="askForm">
+        <button type="button" class="mic" id="micBtn" aria-label="語音輸入"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        <input id="askInput" autocomplete="off" placeholder="輸入你要說的話，或按麥克風" aria-label="你的發言">
+        <button type="submit" class="send" id="sendBtn">送出</button>
+      </form>
+      <div class="micNote" id="micNote" hidden></div>
+      <div class="overlay" id="resultBox" hidden>
+        <div class="result">
+          <span class="stamp" id="rStamp">結案</span>
+          <h2 id="rTitle"></h2>
+          <div class="scoreRow"><span class="scoreBig" id="rScore">0</span><span class="note">/ 100</span><span class="rank" id="rRank"></span></div>
+          <div class="parts" id="rParts"></div>
+          <p class="note" id="rText"></p>
+          <p class="note" id="rBest"></p>
+          <div class="resBtns"><button class="primary" id="rAgain">再玩一次</button><button id="rCases">換案件</button><button id="rHome">回首頁</button></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card" aria-label="建議下一步"><div class="label">建議下一步</div><ul id="hints"></ul></section>
+      <section class="card file" aria-label="卷宗"><div class="label">卷宗</div><div id="fileBox"></div></section>
+      <section class="card" aria-label="證物"><div class="label" id="evidLabel">證物</div><div class="evid" id="evid"></div></section>
+      <section class="card" aria-label="審訊紀錄"><div class="label">審訊紀錄</div><div class="log" id="log"></div></section>
+      <section class="card" aria-label="語音設定">
+        <div class="label">語音與音效</div>
+        <button id="voiceBtn" aria-pressed="false">開啟語音與音效</button>
+        <select id="voiceSus" aria-label="嫌犯聲音"></select>
+        <select id="voiceInter" aria-label="審問官聲音"></select>
+        <p class="note" id="voiceNote">兩個角色的語速、音高會隨情緒改變。</p>
+      </section>
+      <section class="card" aria-label="背景音樂">
+        <div class="label">背景音樂</div>
+        <button id="musicBtn" aria-pressed="true">關閉背景音樂</button>
+        <select id="musicStyle" aria-label="曲風">
+          <option value="auto">曲風：依案件自動搭配</option>
+          <option value="oppress">曲風：壓抑對峙（低頻嗡鳴、時鐘滴答）</option>
+          <option value="advance">曲風：步步進逼（不和諧鋼琴、斷奏弦樂）</option>
+          <option value="nordic">曲風：北歐冷調（大提琴、遠處心跳）</option>
+        </select>
+        <label class="note" for="musicVol">音量</label>
+        <input type="range" id="musicVol" min="0" max="100" value="50" style="accent-color:var(--lamp);padding:0">
+        <p class="note">音樂由程式即時合成，嫌犯壓力越高越緊湊。</p>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<footer>遊戲製作：Eric Hu</footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script>
+/* 瘋狂審訊室・遊戲引擎：五個案件、語意判斷、AI 審問官與 AI 嫌犯、評分。瀏覽器與伺服器共用 */
+(function(root){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const pick=a=>Array.isArray(a)?a[Math.floor(Math.random()*a.length)]:a;
+const has=(s,list)=>list.some(k=>s.includes(k));
+
+/* 語音辨識常見的同音誤聽，先修正再比對 */
+const FIX={'隻聞':'指紋','只聞':'指紋','紙紋':'指紋','止紋':'指紋','知文':'指紋','監事器':'監視器','見識器':'監視器','間是器':'監視器','門機':'門禁','門今':'門禁','刷開':'刷卡',
+ '前裝':'錢莊','錢裝':'錢莊','前莊':'錢莊','賭摘':'賭債','睹債':'賭債','做牢':'坐牢','座牢':'坐牢','自守':'自首','字首':'自首','油同':'油桶','由桶':'油桶','打火雞':'打火機',
+ '超上':'超商','假專':'假鑽','假賺':'假鑽','錢包':'錢','顏料份析':'顏料分析','言料':'顏料','停撥':'停播','陽明三':'陽明山','安眠要':'安眠藥','暗眠藥':'安眠藥','企化':'企劃'};
+const norm=s=>{s=String(s||'').replace(/[\s，。！？、,.!?；;：:「」"'（）()…—～~]/g,''); for(const k in FIX) s=s.split(k).join(FIX[k]); return s;};
+
+const KW={
+ alibi:['那天','那晚','晚上','凌晨','在哪','去哪','去了哪','哪裡','人在','跑去','行蹤','幾點','不在場','做什麼','做了什麼','幹嘛','回家','下班','之後','離開'],
+ threat:['坐牢','關起來','判刑','法官','後果','起訴','犯罪','監獄','關你','老實','重罪','關很久'],
+ empathy:['家人','女兒','兒子','小孩','孩子','老婆','太太','先生','爸媽','理解','幫你','從輕','自首','機會','坦白','難處','苦衷','放心','不得已','辛苦'],
+ bluff:['都知道','全都說','承認了','同夥','證據確鑿','別裝','招了','不要再裝','騙不了','早就知道'],
+ insult:['笨','白癡','廢物','混蛋','垃圾','王八','智障'],
+ flatter:['厲害','聰明','有品味','了不起','佩服','天才','成功','有錢人','見過世面','專業']
+};
+
+/* 個性：影響各種戰術的效果 */
+const PERS={
+ cry:{name:'膽小型',threat:1.2,empathy:1.25,bluff:1,flatter:0.4,contra:1,overAt:3},
+ hyst:{name:'暴躁型',threat:0.7,empathy:1.4,bluff:0.9,flatter:0.3,contra:1,overAt:2},
+ roar:{name:'自大型',threat:0.6,empathy:0.8,bluff:0.5,flatter:2.2,contra:1.1,overAt:3},
+ mad:{name:'冷靜型',threat:0.3,empathy:0.75,bluff:0.8,flatter:0.2,contra:1.6,overAt:2}
+};
+const BANK={
+ cry:{threat:{low:['坐、坐牢？你們不能亂抓人……'],mid:['你、你不要嚇我……'],high:['我不想坐牢……我家人怎麼辦……'],over:['你們一直嚇我，我、我要找律師……']},
+  empathy:{low:['……你們真的會聽我說嗎？'],mid:['你……你真的會幫我說話？'],high:['如果我說了……真的可以從輕發落嗎？']},
+  bluff:{fail:['你、你在唬我吧？證據呢？'],ok:['他、他們全都說了？不可能……']},
+  flatter:{low:['我……我沒你說的那麼厲害啦……'],mid:['……'],high:['……']},
+  insult:['你、你怎麼可以罵人……我要找律師……'],
+  other:{low:['我、我不知道你在說什麼。','你到底想問什麼？'],mid:['可以……可以給我一杯水嗎？','我真的不知道……'],high:['拜託……讓我休息一下……']},
+  repeat:['這、這個你剛剛問過了……']},
+ hyst:{threat:{low:['你威脅我？來啊！看誰怕誰！'],mid:['你再說一次試試看！'],high:['你、你們不要逼我！'],over:['又來！你們除了恐嚇還會什麼！']},
+  empathy:{low:['少假惺惺了！'],mid:['……你真的懂我的感受？'],high:['我只是……我只是氣不過而已……']},
+  bluff:{fail:['唬誰啊！拿證據出來！'],ok:['誰？誰出賣我？']},
+  flatter:{low:['少拍馬屁，有話直說！'],mid:['少來這套！'],high:['……']},
+  insult:['你罵誰！再說一次！'],
+  other:{low:['問完了沒？我還要做生意！'],mid:['你到底想怎樣！'],high:['煩死了！不要再問了！']},
+  repeat:['講幾遍了你聽不懂嗎！']},
+ roar:{threat:{low:['坐牢？我的律師團會讓你丟工作。'],mid:['你知道我爸是誰嗎？'],high:['你、你們敢動我試試看……'],over:['同樣的恐嚇講第三次，你不膩嗎？']},
+  empathy:{low:['我不需要你的同情。'],mid:['……你倒是比其他警察有禮貌。'],high:['……如果我配合，消息可以不要曝光嗎？']},
+  bluff:{fail:['哈，這種小把戲對我沒用。'],ok:['不可能……他們不敢出賣我……']},
+  flatter:{low:['那當然，我的品味可是一流的。'],mid:['哼，算你有眼光。我可是很懂行情的。'],high:['……你說得對，我本來就比那些人聰明。']},
+  insult:['你這種小警察也配罵我？'],
+  other:{low:['我時間很寶貴，說重點。'],mid:['這種問題也值得問？'],high:['……你、你到底想知道什麼？']},
+  repeat:['我已經回答過了，你記性不太好？']},
+ mad:{threat:{low:['威脅對我沒有用，警官。'],mid:['你應該很清楚，這種話上不了法庭。'],high:['……呵，你的語氣變急了。'],over:['恐嚇已經是第三次了，我會請律師記下來。']},
+  empathy:{low:['你想打感情牌？省省吧。'],mid:['……你真的想知道我的理由？'],high:['……從來沒有人問過我，為什麼要這麼做。']},
+  bluff:{fail:['你在虛張聲勢。你的手指在發抖。'],ok:['……有意思。你們比我想的還快。']},
+  flatter:{low:['恭維對我沒有意義。'],mid:['……'],high:['……']},
+  insult:['情緒化的警察，很難辦好案。'],
+  other:{low:['請問你的問題是？'],mid:['……我不太懂你的意思。'],high:['……繼續啊，我在聽。']},
+  repeat:['同樣的問題，同樣的答案。']}
+};
+
+/* AI 審問官的台詞 */
+const INTER={
+ open:['我是負責這個案子的警官。我們好好聊聊吧。','坐吧。接下來的問題，你最好老實回答。'],
+ empathy:['想想你的家人吧。現在坦白，我會幫你爭取從輕發落。','我知道你有苦衷，說出來會輕鬆很多。'],
+ bluff:['你的同夥已經全都說了，你還要撐嗎？','我們早就知道了，只是想聽你親口說。'],
+ threat:['你知道這是重罪吧？不說實話，你會關很久。','法官最討厭不老實的人，後果你自己想清楚。'],
+ press:['我再問一次，那天到底發生了什麼事？','你的說法漏洞百出，老實說吧。','你覺得法官會相信你這套說詞嗎？'],
+ contraQ:'你剛剛說是{a}點，之前又說{b}點，到底哪個才是真的？',
+ react:{excuse:['哼，說得倒是好聽。','這個解釋……我先記下來。','是嗎？我們會去查證。'],contra:['等一下，你剛剛說的可不是這樣！'],leak:['等等……你剛剛說了什麼？','有意思，這個細節我們可沒告訴過你。'],
+  weak:['你的臉色變了喔。','這種解釋你自己相信嗎？'],silent:['不說話？沉默只會讓你更可疑。'],lawyer:['想找律師？可以，但現在先回答問題。'],calm:['嗯。','繼續。','是嗎？'],
+  broke:['終於說實話了。'],held:['……今天就先到這裡。'] }
+};
+
+const CONFESS=/是我(做|拿|偷|放|幹|燒|換|藏|弄|帶走|關)|我(承認|認罪|招了)|我(拿|偷|燒|換|藏)的|東西是我|是我啦|就是我/;
+
+const CASES=[
+{
+ id:'c1',title:'星辰科技金庫失竊案',stars:1,resist:1.0,
+ suspect:{name:'林志明',age:38,job:'公司會計',type:'cry'},
+ brief:'10月15日深夜，星辰科技財務室保險箱裡的80萬元現金不翼而飛。公司會計林志明是頭號嫌疑人，但他堅稱自己是清白的。',
+ secret:'你在10月15日22點12分刷卡進入財務室，從保險箱拿走80萬現金去還錢莊賭債，錢藏在你車子的後車廂。',
+ cover:'那天你九點就下班回家，在家看電視，沒再回過公司。',
+ coverKw:['九點','9點','回家','看電視','在家'],coverTime:9,
+ open:'警察先生，你們抓錯人了吧？我時間很寶貴，有話快說。',
+ alibiQ:'10月15日晚上，你人在哪裡？做了什麼？',
+ alibi:{first:'那天晚上？我九點就下班回家了，在家看電視。',again:['我說過了，九點就回家了！','你要我講幾次？我九點就到家了。']},
+ evidence:[
+  {id:'cctv',name:'走廊監視器畫面',desc:'10月15日22:10，一名穿灰色外套的男子走向財務室，臉部模糊。',kw:['監視器','監視','錄影','攝影機','畫面','鏡頭','影片','灰色外套'],gain:10,unlock:'start',
+   react:{low:['監視器？那個走廊的監視器根本拍不清楚吧。','穿灰色外套的人那麼多，憑什麼說是我？'],mid:['那、那個人……身材跟很多人都很像啊……'],high:['不要再放那段畫面了……']},
+   excuse:['很多人','不是我','看不清','模糊','不清楚'],hint:'說畫面太模糊，穿灰外套的人很多',aiAsk:'這是走廊監視器，22點10分，一個穿灰色外套的男人走向財務室。你也有灰色外套吧？'},
+  {id:'card',name:'門禁刷卡紀錄',desc:'林志明的員工卡在22:12刷開了財務室的門。',kw:['刷卡','門禁','卡片','識別證','員工卡','進出紀錄','打卡'],gain:12,unlock:'alibi',contra:true,
+   react:{low:['刷卡紀錄？我……我可能是回去拿東西而已。'],mid:['我……我只是回去拿手機……'],high:['那張卡……是我的沒錯……']},contraLine:'十、十點十二分？……那、那是我記錯時間了！我是說……',
+   excuse:['拿東西','忘了','手機','借給','掉了','被偷'],hint:'說你回公司拿忘記帶的手機',aiAsk:'你的員工卡在22點12分刷開了財務室的門。你不是九點就回家了？'},
+  {id:'print',name:'鈔票袋上的指紋',desc:'保險箱內鈔票袋的「內側」採到林志明的指紋。',kw:['指紋','手印','鈔票袋','採證'],gain:12,unlock:{count:1},
+   react:{low:['我是會計，碰保險箱很正常吧？'],mid:['指紋……那、那是之前月結的時候留下的……'],high:['鈔票袋的內側……我、我……']},
+   excuse:['會計','月結','工作','常碰','本來就','點鈔'],hint:'說你是會計，月結點鈔本來就會碰鈔票袋',aiAsk:'鈔票袋的「內側」採到你的指紋。內側喔。'},
+  {id:'witness',name:'清潔員王阿姨的證詞',desc:'晚上十點多，看到林志明提著鼓鼓的黑色袋子離開公司。',kw:['證人','阿姨','清潔','目擊','看到你','有人看到','證詞','黑色袋子'],gain:11,unlock:{count:2},
+   react:{low:['清潔阿姨？她老眼昏花，看錯了吧。'],mid:['黑色袋子……那、那是我的運動包……'],high:['王阿姨……她真的看到了……']},
+   excuse:['運動包','健身','看錯','老眼昏花','不是我'],hint:'說那是你的運動包，阿姨看錯人了',aiAsk:'清潔員王阿姨說，十點多看到你提著鼓鼓的黑色袋子離開。'},
+  {id:'debt',name:'錢莊催款簡訊',desc:'林志明手機裡的簡訊：「再不還八十萬，你女兒的學校我們知道在哪。」',kw:['賭','欠債','錢莊','債務','借錢','討債','催款','欠錢','簡訊','還錢'],gain:16,unlock:{count:3},motive:true,
+   react:{low:['賭債？你、你在說什麼，我沒有欠錢！'],mid:['你們怎麼會有這個？錢莊的人找過你們？'],high:['他們說再不還錢，就要去我女兒的學校……']},
+   excuse:['詐騙','誤會','不是我的','早就還','亂傳'],hint:'說那是詐騙簡訊，你根本沒欠錢',aiAsk:'這是你手機裡的簡訊：「再不還八十萬，你女兒的學校我們知道在哪。」你欠了錢莊的錢？'}
+ ],
+ leak:[['後車廂',null],['錢莊','debt'],['賭','debt'],['八十萬','debt'],['80萬','debt'],['刷卡','card'],['黑色袋子','witness'],['十點','card']],
+ confess:{cry:'嗚……對不起……是我拿的……我欠了錢莊八十萬，他們說要對我女兒下手……錢……錢還藏在我車子的後車廂……',hyst:'啊啊啊——！對！是我拿的！錢就在我車子後車廂！你們滿意了吧！'},
+ fail:'我累了。在律師來之前，我一句話都不會再說。',
+ ending:{win:'贓款在林志明的汽車後車廂被找到，錢莊集團也因此被一網打盡。',lose:'林志明守口如瓶，被無保請回。三天後，他和那80萬一起消失了。'}
+},
+{
+ id:'c2',title:'夜市攤位縱火案',stars:2,resist:0.9,
+ suspect:{name:'黃大雄',age:45,job:'雞排攤老闆',type:'hyst'},
+ brief:'11月2日凌晨1點，饒河夜市的「阿美珍珠奶茶」攤位起火，延燒了整排攤位。隔壁雞排攤老闆黃大雄和阿美長期不合。',
+ secret:'你氣阿美在網路上抹黑你的雞排，凌晨0點50分去超商買打火機，拿攤位的炸油淋在她的攤位上點火，想給她一點教訓，沒想到燒了一整排。',
+ cover:'那晚你12點收攤就回家睡覺，老婆可以作證。',
+ coverKw:['十二點','12點','收攤','回家','睡覺','老婆'],coverTime:12,
+ open:'幹嘛？我的攤位也被燒了耶！你們不去抓犯人，抓我幹嘛？',
+ alibiQ:'11月2日凌晨，你人在哪裡？',
+ alibi:{first:'我12點收攤就回家睡覺了，我老婆可以作證！',again:['講幾遍了！12點就回家了！']},
+ evidence:[
+  {id:'oil',name:'起火點的油桶',desc:'起火點找到燒焦的油桶，桶身印著「大雄雞排」。',kw:['油桶','桶子','炸油','起火點','汽油','油'],gain:10,unlock:'start',
+   react:{low:['油桶？我的油桶早就被偷了！'],mid:['那、那是我的桶子沒錯，可是我不知道怎麼會在那裡！'],high:['那個油……那個油……']},
+   excuse:['被偷','偷走','借','不見','很多人'],hint:'說你的油桶前幾天就被偷了',aiAsk:'起火點找到一個燒焦的油桶，上面印著「大雄雞排」。你的吧？'},
+  {id:'store',name:'超商監視器',desc:'凌晨0:50，黃大雄在夜市旁的超商買了一個打火機。',kw:['超商','便利商店','打火機','買東西','7-11','全家'],gain:12,unlock:'alibi',contra:true,
+   react:{low:['買打火機犯法喔？'],mid:['我、我抽菸啦！'],high:['那個打火機……']},contraLine:'我、我是……買打火機抽菸不行喔！我是說……我、我那時候還沒回家啦！',
+   excuse:['抽菸','香菸','點菸','菸'],hint:'說你買打火機是為了抽菸',aiAsk:'凌晨0點50分，超商監視器拍到你在買打火機。你不是12點就回家睡了？'},
+  {id:'wife',name:'黃太太改口的證詞',desc:'黃太太改口：他那天一點半才回家，身上有很重的煙味。',kw:['老婆','太太','妻子','改口','煙味','一點半'],gain:13,unlock:{count:1},contra:true,
+   react:{low:['她亂講！她跟我吵架故意的！'],mid:['她……她真的這樣說？'],high:['連她都不相信我了……']},contraLine:'她、她怎麼……我是說，我、我晚一點回家又怎樣！',
+   excuse:['吵架','亂講','記錯','炸雞','油煙'],hint:'說煙味是炸雞排的油煙，她記錯時間',aiAsk:'你太太改口了，她說你一點半才回家，身上一股煙味。'},
+  {id:'post',name:'網路吵架截圖',desc:'黃大雄在網路留言回嗆阿美：「抹黑我？走著瞧，讓妳做不了生意。」',kw:['網路','留言','截圖','臉書','走著瞧','吵架','抹黑','生意'],gain:15,unlock:{count:2},motive:true,
+   react:{low:['講講氣話而已，犯法喔？'],mid:['她先在網路上抹黑我的！'],high:['她害我生意掉一半……我只是想給她一點教訓……']},
+   excuse:['氣話','開玩笑','說說而已','隨便講'],hint:'說那只是一時的氣話',aiAsk:'你在網路上說要讓阿美做不了生意，還說走著瞧？'},
+  {id:'cloth',name:'燒焦的外套',desc:'從黃大雄家洗衣籃找到的外套，袖口有燒焦痕跡和炸油。',kw:['衣服','外套','袖子','燒焦','痕跡','洗衣'],gain:12,unlock:{count:3},
+   react:{low:['炸雞排本來就會沾到油！'],mid:['袖、袖子那個是……是被油噴到的……'],high:['我想說洗一洗就沒事了……']},
+   excuse:['炸雞','工作','噴到','油鍋'],hint:'說是炸雞排時被油鍋噴到',aiAsk:'你家洗衣籃裡的外套，袖口燒焦了，還沾滿炸油。'}
+ ],
+ leak:[['點火',null],['淋',null],['打火機','store'],['一點半','wife'],['走著瞧','post'],['外套','cloth']],
+ confess:{hyst:'對啦！是我燒的！她在網路上害我生意掉一半，我只是想給她一點教訓，我哪知道會燒成這樣……',cry:'對不起……是我燒的……我只是想嚇嚇她……我沒想到會燒掉整排……'},
+ fail:'我要找律師！你們沒證據就放我回去做生意！',
+ ending:{win:'黃大雄承認縱火，夜市攤商們終於得到交代。',lose:'證據不足，黃大雄回到夜市繼續賣雞排，鄰居們都不敢再靠近他。'}
+},
+{
+ id:'c3',title:'珠寶店鑽石調包案',stars:3,resist:0.8,
+ suspect:{name:'蕭天翔',age:29,job:'集團小開',type:'roar'},
+ brief:'價值3000萬的藍鑽「海洋之心」，在富二代蕭天翔試戴之後被發現換成了假鑽。他堅稱自己只是試戴，家裡有的是錢。',
+ secret:'你家公司快破產，信用卡全被停。你事先用助理的名義訂做假鑽，試戴時趁店員轉身的8秒調包，當天下午把真鑽放進銀行保險箱。',
+ cover:'你只是試戴一下就還回去了，之後直接回家。你家有的是錢，根本不需要偷。',
+ coverKw:['試戴','還回去','直接回家','有錢','不需要'],coverTime:null,
+ open:'找我來做什麼？我很忙，下午還有遊艇派對。',
+ alibiQ:'試戴完之後，你去了哪裡？',
+ alibi:{first:'試戴完？我就直接回家了。我家有的是錢，需要偷嗎？',again:['我說了，直接回家。']},
+ evidence:[
+  {id:'cam',name:'店內監視器',desc:'店員轉身拿證書的8秒內，蕭天翔的手被身體擋住，看不到動作。',kw:['監視器','影片','畫面','八秒','8秒','轉身'],gain:9,unlock:'start',
+   react:{low:['八秒？八秒能做什麼？'],mid:['你們看不到我的手，就代表我有做什麼？'],high:['那八秒……我只是在欣賞鑽石……']},
+   excuse:['欣賞','看鑽石','看不到','沒拍到','什麼都'],hint:'說畫面根本拍不到你的手',aiAsk:'店員轉身的那8秒，你的手被身體擋住了。你在做什麼？'},
+  {id:'fake',name:'假鑽鑑定報告',desc:'假鑽是高級人造鋯石，切工和原鑽完全相同，必須事先訂做。',kw:['假鑽','鑑定','鋯石','切工','訂做'],gain:11,unlock:{count:1},
+   react:{low:['那代表店家早就被調包了，不關我的事。'],mid:['事、事先訂做？那也可能是別人訂的。'],high:['……']},
+   excuse:['店家','早就','別人','之前','店員'],hint:'說假鑽可能在你試戴前就被調包了',aiAsk:'鑑定結果出來了，假鑽的切工跟真鑽一模一樣，這種東西一定要事先訂做。'},
+  {id:'bank',name:'銀行保險箱紀錄',desc:'試戴當天下午3點，蕭天翔去了銀行，開啟了自己的保險箱。',kw:['銀行','保險箱','下午'],gain:12,unlock:'alibi',contra:true,
+   react:{low:['我去銀行不行嗎？'],mid:['那、那是我的私事。'],high:['……保險箱裡只是文件。']},contraLine:'我、我去銀行拿個文件不行嗎！我是說……回家前順便去的！',
+   excuse:['文件','合約','存東西','手錶','順便'],hint:'說你只是順路去銀行拿合約文件',aiAsk:'你說試戴完直接回家？你下午3點去了銀行，還打開了自己的保險箱。'},
+  {id:'receipt',name:'地下工坊收據',desc:'一家地下工坊的訂做收據，訂購人是蕭天翔的私人助理。',kw:['收據','工坊','助理','訂購','訂單'],gain:13,unlock:{count:2},
+   react:{low:['助理訂的東西關我什麼事？'],mid:['那、那是他自己的私事……'],high:['那個沒用的助理……']},
+   excuse:['助理','私事','不知道','他自己'],hint:'把責任推給助理',aiAsk:'訂做假鑽的工坊收據上，訂購人是你的私人助理。'},
+  {id:'money',name:'停卡通知與財報',desc:'蕭家公司連續三季虧損，蕭天翔名下五張信用卡全部被停卡。',kw:['停卡','信用卡','財報','破產','虧損','沒錢','公司'],gain:16,unlock:{count:3},motive:true,
+   react:{low:['那是暫時的財務調度。'],mid:['你、你們查我的信用卡？'],high:['我爸不讓任何人知道公司快倒了……']},
+   excuse:['調度','暫時','誤會','換卡','升級'],hint:'說只是暫時的財務調度',aiAsk:'你名下五張信用卡全部被停卡，你家公司連虧三季。你還說你家有的是錢？'}
+ ],
+ leak:[['銀行','bank'],['保險箱','bank'],['破產','money'],['助理','receipt'],['鋯石','fake'],['訂做','fake']],
+ confess:{roar:'對！是我換的！公司要倒了，我爸只會罵我沒用！鑽石就在我的銀行保險箱裡，你們滿意了吧！',hyst:'夠了！對！是我換的！鑽石在我銀行保險箱裡！'},
+ fail:'我的律師到了。下次要問話，先準備好真正的證據。',
+ ending:{win:'「海洋之心」在蕭天翔的銀行保險箱被找到，蕭家集團的財務危機也跟著曝光。',lose:'蕭天翔在律師團簇擁下離開，「海洋之心」從此下落不明。'}
+},
+{
+ id:'c4',title:'美術館名畫調包案',stars:4,resist:0.72,
+ suspect:{name:'沈靜雯',age:41,job:'資深修復師',type:'mad'},
+ brief:'美術館鎮館之作《晨霧》被發現是贗品。修復師沈靜雯負責修復這幅畫長達三個月，她冷靜地否認一切。',
+ secret:'館方要裁撤你的修復部門。你在修復期間花三個月臨摹了一幅贗品，畫送回倉庫時調包，把真跡賣給海外收藏家，收了500萬。',
+ cover:'修復期間畫一直鎖在恆溫室，有門禁和監視器。真跡一定是在運送時被別人調包的。',
+ coverKw:['恆溫室','門禁','監視器','運送','別人'],coverTime:null,
+ open:'警官，有話請直說。我下午還要回工作室。',
+ alibiQ:'畫送回倉庫那天，你在做什麼？',
+ alibi:{first:'那天我在工作室整理文件。畫是運送公司負責的，與我無關。',again:['我說過了，我在工作室。']},
+ evidence:[
+  {id:'paint',name:'贗品顏料分析',desc:'贗品使用了今年才上市的新型鈦白顏料。',kw:['顏料','鈦白','分析','化驗','成分'],gain:9,unlock:'start',
+   react:{low:['任何人都買得到那種顏料。'],mid:['……今年上市，所以呢？'],high:['你們的鑑識組比我想的認真。']},
+   excuse:['任何人','買得到','很普遍','誰都'],hint:'說那種顏料任何人都買得到',aiAsk:'贗品用的是今年才上市的鈦白顏料，代表這幅假畫是今年才畫的。'},
+  {id:'door',name:'恆溫室門禁紀錄',desc:'修復期間，沈靜雯每晚都加班到凌晨兩三點，是唯一深夜進出的人。',kw:['門禁','加班','深夜','凌晨','恆溫室','進出'],gain:11,unlock:'alibi',contra:true,
+   react:{low:['修復需要時間，加班很正常。'],mid:['……你在暗示什麼？'],high:['深夜才安靜，才能好好畫……我是說，好好修。']},contraLine:'……你說得對，畫一直在恆溫室，而深夜只有我在。那又如何？',
+   excuse:['加班','修復','趕工','工作','進度'],hint:'說修復進度很趕，所以每晚加班',aiAsk:'你說畫一直鎖在恆溫室？門禁紀錄顯示，你每天深夜都一個人待在裡面到凌晨。'},
+  {id:'sketch',name:'工作室的臨摹草稿',desc:'在沈靜雯工作室找到的《晨霧》局部臨摹草稿，筆觸與贗品一致。',kw:['草稿','臨摹','工作室','筆觸','素描'],gain:12,unlock:{count:1},
+   react:{low:['修復師都會練習臨摹，這是基本功。'],mid:['筆觸一致？……那說明我臨摹得很好。'],high:['那些草稿……我應該燒掉的。']},
+   excuse:['練習','基本功','研究','修復需要'],hint:'說臨摹是修復師的基本功',aiAsk:'你工作室裡的臨摹草稿，筆觸跟贗品完全一致。'},
+  {id:'account',name:'海外帳戶入帳',desc:'沈靜雯在海外的帳戶，三週前收到500萬元匯款。',kw:['帳戶','匯款','海外','五百萬','500萬','入帳'],gain:14,unlock:{count:2},
+   react:{low:['那是我替私人收藏家修畫的酬勞。'],mid:['你們查到海外去了？'],high:['……那筆錢，是我應得的。']},
+   excuse:['酬勞','私人','接案','修畫','顧問'],hint:'說那是私下接案修畫的酬勞',aiAsk:'你的海外帳戶三週前收到500萬，這是什麼錢？'},
+  {id:'memo',name:'裁撤部門公文',desc:'館方公文：明年起裁撤修復部門，業務全部外包。',kw:['裁撤','公文','部門','外包','裁員','二十年'],gain:15,unlock:{count:3},motive:true,
+   react:{low:['裁撤是館方的決定，與我無關。'],mid:['二十年……我在這裡二十年……'],high:['他們把我的心血當垃圾……那幅畫只有我懂。']},
+   excuse:['無所謂','早就知道','退休','沒差'],hint:'表現得毫不在意',aiAsk:'館方明年要裁撤你的部門，你在這裡工作了二十年吧？'},
+  {id:'mover',name:'搬運工的證詞',desc:'搬運工作證：畫送回倉庫前，沈靜雯以「最後檢查」為由獨自打開過運送箱。',kw:['搬運','運送箱','箱子','最後檢查','工人'],gain:13,unlock:{count:4},
+   react:{low:['那是例行檢查。'],mid:['……他記得真清楚。'],high:['那十分鐘，夠了。']},
+   excuse:['檢查','確認','職責','例行'],hint:'說那只是修復師的例行最後檢查',aiAsk:'搬運工說，畫送回倉庫前，你一個人打開過運送箱，說要做最後檢查。'}
+ ],
+ leak:[['鈦白','paint'],['五百萬','account'],['500萬','account'],['收藏家',null],['海外','account'],['運送箱','mover'],['臨摹','sketch']],
+ confess:{mad:'呵呵……對，是我換的。二十年的心血，他們說裁就裁。真跡在一位海外收藏家手上，至少他懂得珍惜。'},
+ fail:'時間到了吧，警官。下次見面，記得帶點真正的東西來。',
+ ending:{win:'真跡《晨霧》透過國際刑警追回，沈靜雯的臨摹功力讓鑑定專家都驚嘆不已。',lose:'沈靜雯平靜地離開警局。一年後，《晨霧》出現在海外私人收藏展上。'}
+},
+{
+ id:'c5',title:'午夜電台主持人失蹤案',stars:5,resist:0.65,
+ suspect:{name:'韓默',age:36,job:'電台製作人',type:'mad'},
+ brief:'當紅深夜電台主持人「阿光」直播結束後離奇失蹤三天。最後和他在一起的是製作人韓默。外界傳聞阿光欠債躲起來了。',
+ secret:'電台收聽率下滑即將停播。你策劃「主持人離奇失蹤」來炒話題，讓阿光喝下加了安眠藥的咖啡，凌晨開車載他到陽明山的小木屋鎖起來，打算一週後安排「奇蹟生還」直播。',
+ cover:'直播一點結束後，你和阿光在門口分開，各自開車回家。他欠債的傳聞大家都知道。',
+ coverKw:['一點','1點','分開','各自','開車回家','欠債'],coverTime:1,
+ open:'我也很擔心阿光。你們應該去查他的債主，而不是我。',
+ alibiQ:'直播結束後，你和阿光去了哪裡？',
+ alibi:{first:'直播一點結束，我們在門口分開，各自開車回家。你們應該去查他的債務。',again:['我說過了，各自回家。']},
+ evidence:[
+  {id:'parking',name:'停車場監視器',desc:'電台停車場監視器：阿光的車整晚都停在原地，沒有開走。',kw:['停車場','他的車','停車','沒開走','監視器'],gain:9,unlock:'alibi',contra:true,
+   react:{low:['也許他叫了計程車。'],mid:['……他可能臨時改變主意。'],high:['那台車……我忘了處理。']},contraLine:'……也許他後來叫了計程車。我只是說「各自回家」，沒說他開車。',
+   excuse:['計程車','朋友載','改變主意','叫車'],hint:'說阿光可能叫了計程車',aiAsk:'你說你們各自開車回家？阿光的車整晚都停在停車場，根本沒開走。'},
+  {id:'rumor',name:'債務傳聞查證',desc:'查證結果：阿光的債務半年前就還清了，欠債傳聞是匿名帳號散布的。',kw:['欠債','債務','傳聞','謠言','匿名','債主'],gain:8,unlock:'start',
+   react:{low:['匿名帳號？網路上什麼人都有。'],mid:['……還清了？我不知道。'],high:['那些帳號……']},
+   excuse:['不知道','網路','謠言','不清楚'],hint:'說你不知道網路謠言是從哪來的',aiAsk:'阿光的債半年前就還清了，欠債傳聞是匿名帳號散布的。你知道是誰嗎？'},
+  {id:'phone',name:'手機最後訊號',desc:'阿光手機的最後訊號，出現在凌晨2點的陽明山區。',kw:['手機','訊號','基地台','陽明山','山上'],gain:11,unlock:{count:1},
+   react:{low:['也許他自己去山上散心。'],mid:['陽明山……那又怎樣？'],high:['……']},
+   excuse:['散心','自己去','不知道','他自己'],hint:'說阿光可能自己上山散心',aiAsk:'阿光手機最後的訊號，凌晨2點出現在陽明山。'},
+  {id:'etc',name:'韓默的行車紀錄',desc:'韓默的車凌晨1點40分往陽明山方向行駛，4點才回到市區。',kw:['行車','電子收費','紀錄','你的車','eTag','ETC','etc','收費站'],gain:13,unlock:{count:2},contra:true,
+   react:{low:['我去兜風不行嗎？'],mid:['……你們連這個都查了。'],high:['……']},contraLine:'我……我是去山上兜風，睡不著。這跟阿光無關。',
+   excuse:['兜風','睡不著','散心','看夜景'],hint:'說你睡不著，去山上兜風看夜景',aiAsk:'你說各自回家？你的車凌晨1點40分往陽明山去，4點才回到市區。'},
+  {id:'pills',name:'安眠藥處方',desc:'阿光失蹤前一天，韓默領了一整盒安眠藥，但他的家人說他從不失眠。',kw:['安眠藥','藥','處方','藥局','失眠'],gain:12,unlock:{count:3},
+   react:{low:['我最近壓力大，睡不好。'],mid:['你們連我的病歷都查？'],high:['那些藥……只是讓他好好睡一覺……']},
+   excuse:['失眠','壓力','睡不好','醫生'],hint:'說你最近壓力大、失眠',aiAsk:'阿光失蹤前一天，你領了一整盒安眠藥。你家人說你從來不失眠。'},
+  {id:'memo',name:'停播公文',desc:'電台內部公文：節目收聽率連續下滑，下個月起停播。',kw:['停播','收聽率','公文','節目','下滑'],gain:13,unlock:{count:3},motive:true,
+   react:{low:['節目起起落落很正常。'],mid:['停播……你們從哪拿到的？'],high:['十年的節目，就要這樣結束……']},
+   excuse:['正常','早就知道','無所謂','沒差'],hint:'表現得不在乎停播',aiAsk:'你的節目下個月就要停播了，收聽率連續下滑，對吧？'},
+  {id:'plan',name:'失蹤企劃書',desc:'韓默電腦裡的檔案《失蹤話題七日計畫》：第七天安排「奇蹟生還」直播。',kw:['企劃','計畫','七日','電腦','檔案','奇蹟生還','炒作'],gain:18,unlock:{count:4},
+   react:{low:['那只是劇本構想。'],mid:['你們……打開了我的電腦？'],high:['只差四天……只要再四天……']},
+   excuse:['劇本','構想','創作','小說','點子'],hint:'說那只是你寫的劇本構想',aiAsk:'你電腦裡有一份《失蹤話題七日計畫》，第七天要安排「奇蹟生還」直播？'}
+ ],
+ leak:[['小木屋',null],['咖啡',null],['安眠藥','pills'],['陽明山','phone'],['七日','plan'],['停播','memo'],['匿名','rumor']],
+ confess:{mad:'呵……只差四天。阿光在陽明山我家的小木屋，他很安全，有吃有喝。我只是想救這個節目……收聽率會破紀錄的……'},
+ fail:'時間到了。你們找不到他，也證明不了任何事。',
+ ending:{win:'警方在陽明山小木屋找到阿光，他平安無事。「奇蹟生還」真的上了頭條，只是主角換成了韓默。',lose:'韓默離開警局後，第七天，阿光「奇蹟生還」的直播創下了收聽紀錄。'}
+}
+];
+const byId=id=>CASES.find(c=>c.id===id)||CASES[0];
+
+/* ---------- 遊戲狀態 ---------- */
+function newGame(caseId,limit){
+ const C=byId(caseId);
+ const st={caseId:C.id,limit:limit||20,rounds:limit||20,turn:0,P:5,mood:10,used:{},alibiHeard:false,contraFound:[],threatN:0,empathyN:0,bluffN:0,flatterN:0,insultN:0,overN:0,
+  stall:0,danger:0,unlocked:[],end:null,breakMode:C.suspect.type,claimTime:null,leaks:0,selfContra:0,lawyerN:0,silentN:0,excuseN:0,lastEvid:null,pendingContra:null,askedTactic:{},log:[]};
+ refreshUnlock(st);
+ return st;
+}
+function usedCount(st){return Object.keys(st.used).filter(k=>st.used[k]).length;}
+function isUnlocked(st,e){
+ if(e.unlock==='start') return true;
+ if(e.unlock==='alibi') return st.alibiHeard||usedCount(st)>=2;
+ return usedCount(st)>=e.unlock.count;
+}
+function refreshUnlock(st){
+ const C=byId(st.caseId), now=[];
+ for(const e of C.evidence) if(!st.unlocked.includes(e.id)&&isUnlocked(st,e)){st.unlocked.push(e.id);now.push(e);}
+ return now;
+}
+const bandOf=P=>P<30?'low':P<60?'mid':'high';
+
+/* 解析一句審問（人類或 AI 都用這個） */
+function parseQuestion(st,text,evidId){
+ const C=byId(st.caseId), s=norm(text);
+ const hits=[];
+ if(evidId&&st.unlocked.includes(evidId)) hits.push(evidId);
+ if(s) for(const e of C.evidence) if(st.unlocked.includes(e.id)&&!hits.includes(e.id)&&has(s,e.kw)) hits.push(e.id);
+ const intents={};
+ for(const k in KW) if(s&&has(s,KW[k])) intents[k]=true;
+ const locked=s?C.evidence.filter(e=>!st.unlocked.includes(e.id)&&has(s,e.kw)).map(e=>e.id):[];
+ const display=text&&text.trim()?text.trim():(evidId?'（出示證物：'+(C.evidence.find(e=>e.id===evidId)||{}).name+'）':'……');
+ return {text:display,evidId:evidId||null,hits:hits.slice(0,2),intents,locked};
+}
+
+/* AI 審問官挑下一個問題 */
+function aiQuestion(st){
+ const C=byId(st.caseId), per=PERS[C.suspect.type];
+ if(st.turn===0&&!st.alibiHeard) return Object.assign(parseQuestion(st,'',null),{text:pick(INTER.open)+C.alibiQ,intents:{alibi:true},ai:true});
+ if(!st.alibiHeard) return {text:C.alibiQ,evidId:null,hits:[],intents:{alibi:true},ai:true};
+ if(st.pendingContra){const p=st.pendingContra; st.pendingContra=null; return {text:INTER.contraQ.replace('{a}',p.a).replace('{b}',p.b),evidId:null,hits:[],intents:{},press:6,ai:true};}
+ const avail=C.evidence.filter(e=>st.unlocked.includes(e.id)&&!st.used[e.id]);
+ const e=avail.find(x=>x.contra)||avail[0];
+ if(e) return {text:e.aiAsk,evidId:e.id,hits:[e.id],intents:{},ai:true};
+ if(st.P>=55&&st.empathyN<2) return {text:pick(INTER.empathy),evidId:null,hits:[],intents:{empathy:true},ai:true};
+ if(st.P>=35&&st.bluffN<1) return {text:pick(INTER.bluff),evidId:null,hits:[],intents:{bluff:true},ai:true};
+ if(st.threatN<per.overAt-1) return {text:pick(INTER.threat),evidId:null,hits:[],intents:{threat:true},ai:true};
+ return {text:pick(INTER.press),evidId:null,hits:[],intents:{},press:4,ai:true};
+}
+
+const CN={'零':0,'一':1,'二':2,'兩':2,'三':3,'四':4,'五':5,'六':6,'七':7,'八':8,'九':9,'十':10};
+function parseTime(s){
+ const m=s.match(/([0-9０-９]{1,2}|[一二兩三四五六七八九十]{1,3})(點|時)/);
+ if(!m) return null;
+ let v=m[1].replace(/[０-９]/g,c=>String.fromCharCode(c.charCodeAt(0)-0xFEE0));
+ if(/^\d+$/.test(v)) return +v;
+ if(v==='十') return 10; if(v.startsWith('十')) return 10+(CN[v[1]]||0); if(v.endsWith('十')) return (CN[v[0]]||1)*10;
+ if(v.length===3&&v[1]==='十') return CN[v[0]]*10+CN[v[2]];
+ return CN[v]!=null?CN[v]:null;
+}
+
+/* 人類嫌犯的回答：判斷藉口好壞、前後矛盾、說溜嘴 */
+function evalAnswer(st,q,text){
+ const C=byId(st.caseId), s=norm(text), notes=[]; let mul=1, add=0, flags={};
+ if(CONFESS.test(s)) return {mul:1,add:100,notes:['嫌犯自己認罪了！'],flags:{confess:true}};
+ const ev=q.hits.length?C.evidence.find(e=>e.id===q.hits[0]):null;
+ if(s.length<3){mul=1.15;add+=3;st.silentN++;notes.push('沉默只會更可疑');flags.silent=true;}
+ else if(ev&&has(s,ev.excuse)){mul=0.35;st.excuseN++;notes.push('合理的解釋，壓力大減');flags.excuse=true;}
+ else if(q.intents.alibi&&has(s,C.coverKw)){mul=0.3;notes.push('說詞和事前準備的一致');flags.excuse=true;}
+ else if(ev){mul=0.9;notes.push('解釋得不太有說服力');flags.weak=true;}
+ else if(q.intents.threat&&/(律師|證據|冤枉|沒做|不是我)/.test(s)){mul=0.55;notes.push('冷靜應對了威脅');flags.excuse=true;}
+ else if((q.intents.empathy||q.intents.bluff)&&/(沒做|不是我|冤枉|證據|唬)/.test(s)){mul=0.6;notes.push('沒有被套話');flags.excuse=true;}
+ else mul=0.8;
+ if(s.includes('律師')){st.lawyerN++; if(st.lawyerN===1){mul*=0.5;notes.push('要求律師，暫時穩住');flags.lawyer=true;} else {add+=3;notes.push('一直喊律師反而顯得心虛');}}
+ const tm=parseTime(s);
+ if(tm!=null){
+  if(st.claimTime==null){st.claimTime=tm; if(C.coverTime!=null&&tm!==C.coverTime){add+=6;notes.push('說出的時間和事前說詞不同');flags.contra=true;}}
+  else if(tm!==st.claimTime){add+=15;st.selfContra++;notes.push('前後矛盾！你剛才說的是'+st.claimTime+'點');flags.contra=true;st.pendingContra={a:tm,b:st.claimTime};}
+ }
+ for(const [w,eid] of C.leak){ if(s.includes(w)&&(!eid||!st.used[eid])){add+=14;st.leaks++;notes.push('說溜嘴了：「'+w+'」');flags.leak=true;break;} }
+ if(s.length>45){add+=3;notes.push('說太多了，破綻跟著變多');}
+ if(has(s,KW.insult)){add+=2;notes.push('對警官不禮貌，態度扣分');}
+ return {mul,add,notes,flags};
+}
+
+/* 結算一回合。answerText 為 null 時由 AI 扮演嫌犯 */
+function resolve(st,q,answerText){
+ const C=byId(st.caseId), per=PERS[C.suspect.type], bank=BANK[C.suspect.type], b=bandOf(st.P);
+ let gain=0, reply=null; const notes=[];
+ for(const id of q.hits){
+  const e=C.evidence.find(x=>x.id===id), n=st.used[id]||0; st.used[id]=n+1; st.lastEvid=id;
+  if(n===0){
+   let g=e.gain;
+   if(e.contra&&st.alibiHeard){g+=Math.round(10*per.contra);st.contraFound.push(id);notes.push('戳破嫌犯的說詞！');reply=reply||e.contraLine||pick(e.react[b]);}
+   if(e.motive) notes.push('找到犯案動機！');
+   gain+=g; reply=reply||pick(e.react[b]);
+  } else { if(n===1) gain+=Math.round(e.gain*0.3); reply=reply||pick(bank.repeat); notes.push('重複出示，效果大減'); }
+ }
+ const it=q.intents;
+ if(!q.hits.length&&it.alibi){
+  if(!st.alibiHeard){st.alibiHeard=true;gain+=3;reply=C.alibi.first;notes.push('取得嫌犯的說詞');}
+  else {gain+=1;reply=pick(C.alibi.again);}
+ }
+ if(it.insult){gain-=4;st.insultN++;reply=reply||pick(bank.insult);notes.push('態度太差，嫌犯開始防備');}
+ if(it.threat){st.threatN++;
+  if(st.threatN>=per.overAt){gain-=4;st.overN++;reply=reply||pick(bank.threat.over);notes.push('威脅太多次，反而失效');}
+  else {gain+=Math.round((b==='high'?8:6)*per.threat);reply=reply||pick(bank.threat[b]);}}
+ if(it.empathy){st.empathyN++;gain+=Math.round((b==='low'?2:b==='mid'?7:13)*per.empathy);reply=reply||pick(bank.empathy[b]);if(b==='high'&&per.empathy>=1)notes.push('動之以情，正中要害');}
+ if(it.bluff){st.bluffN++;
+  if(st.P<35){gain-=3;reply=reply||pick(bank.bluff.fail);notes.push('嫌犯看穿你在虛張聲勢');}
+  else {gain+=Math.round((st.bluffN===1?9:2)*per.bluff);reply=reply||pick(bank.bluff.ok);}}
+ if(it.flatter){st.flatterN++; const g=st.flatterN<=2?Math.round(4*per.flatter):0; gain+=g; reply=reply||pick(bank.flatter[b]); if(per.flatter>1&&st.flatterN<=2) notes.push('他被捧得飄飄然，開始鬆口');}
+ if(q.press){gain+=q.press;reply=reply||pick(bank.other[b]);}
+ if(reply==null){gain+=1;reply=pick(bank.other[b]);}
+ if(q.locked&&q.locked.length&&!q.hits.length) notes.push('你提到的證據還沒到手，嫌犯根本不怕。先繼續問，取得更多證物。');
+ if(gain>0) gain=Math.max(1,Math.round(gain*C.resist));
+
+ let flags={}, interLine=null;
+ if(answerText!=null){
+  const a=evalAnswer(st,q,answerText); flags=a.flags;
+  gain=Math.round(Math.max(0,gain)*a.mul)+a.add+(gain<0?gain:0);
+  if(flags.excuse&&!q.hits.length&&!flags.contra&&!flags.leak&&!flags.confess){gain=Math.min(gain,st.P>=60?-5:-3);a.notes.push('穩住了情緒，壓力下降');}
+  notes.push(...a.notes);
+  reply=answerText.trim()||'……';
+ }
+ gain=Math.round(gain);
+ st.P=clamp(st.P+gain,0,100); st.rounds--; st.turn++;
+ st.stall=gain<=2?st.stall+1:0;
+ st.danger=gain>=8?st.danger+1:0;
+ st.mood=clamp(st.mood+(gain>=8?-8:gain<=2?14:2)+(flags.excuse?6:0)+(it.insult?-2:0)+(flags.contra||flags.leak?-10:0),0,100);
+ const unlockedNow=refreshUnlock(st);
+ if(flags.contra) interLine=pick(INTER.react.contra);
+ else if(flags.leak) interLine=pick(INTER.react.leak);
+ else if(flags.silent) interLine=pick(INTER.react.silent);
+ else if(flags.lawyer) interLine=pick(INTER.react.lawyer);
+ else if(flags.excuse) interLine=pick(INTER.react.excuse);
+ else if(gain>=10) interLine=pick(INTER.react.weak);
+ else interLine=pick(INTER.react.calm);
+ let confession=null;
+ if(flags.confess||st.P>=90){
+  st.end='broke';
+  st.breakMode=(C.suspect.type==='cry'&&st.threatN>st.empathyN+1&&C.confess.hyst)?'hyst':C.suspect.type;
+  st.P=100; confession=C.confess[st.breakMode]||Object.values(C.confess)[0];
+  if(answerText==null) reply=confession;
+  interLine=pick(INTER.react.broke);
+ } else if(st.rounds<=0){
+  st.end='held'; interLine=pick(INTER.react.held);
+ }
+ const res={q:q.text,gain,reply,notes,unlocked:unlockedNow.map(e=>e.id),end:st.end,confession,interLine,flags};
+ st.log.push({q:q.text,a:reply,gain});
+ if(st.log.length>60) st.log.shift();
+ return res;
+}
+
+/* ---------- 建議下一步（連續兩回合沒進展才出現） ---------- */
+function hints(st,role){
+ const C=byId(st.caseId), per=C.suspect.type;
+ if(st.end) return [];
+ const h=[];
+ if(role==='inter'){
+  if(st.stall<2) return [];
+  if(!st.alibiHeard) h.push('先問他案發時人在哪裡（例如：「那天晚上你在哪裡？」），取得他的說詞。');
+  const av=C.evidence.filter(e=>st.unlocked.includes(e.id)&&!st.used[e.id]);
+  const contra=av.find(e=>e.contra);
+  if(st.alibiHeard&&contra) h.push('他的說詞有破綻！出示「'+contra.name+'」戳破他。');
+  const mot=av.find(e=>e.motive); if(mot) h.push('「'+mot.name+'」可能就是他的犯案動機。');
+  const rest=av.filter(e=>e!==contra&&e!==mot);
+  if(rest.length&&h.length<2) h.push('還沒用過的證物：'+rest.map(e=>'「'+e.name+'」').join('、')+'。');
+  if(per==='roar') h.push('他很自大，試著稱讚他、捧他，他可能會鬆口。');
+  else if(per==='mad') h.push('他很冷靜，威脅沒有用，要用證據和矛盾一步步逼他。');
+  else if(st.P>=55) h.push('他快撐不住了。提到他的家人、勸他自首從輕，效果會特別好。');
+  if(!av.length) h.push('證物都用完了，換個戰術：動之以情、虛張聲勢，或再問一次他的說詞。');
+ } else {
+  if(st.danger<2) return [];
+  h.push('危險！你的壓力連續上升了。');
+  const e=st.lastEvid&&C.evidence.find(x=>x.id===st.lastEvid);
+  if(e) h.push('面對「'+e.name+'」，可以這樣解釋：'+e.hint+'。');
+  h.push('說話前後要一致，別改口時間和地點：'+C.cover);
+  h.push('回答簡短一點，也別提到還沒被拿出來的細節，免得說溜嘴。');
+ }
+ return h.slice(0,3);
+}
+
+/* ---------- 評分與稱號 ---------- */
+const TIER_MUL={10:1.1,20:1,30:0.9};
+const POLICE=[[95,'刑事警察局局長'],[88,'刑警大隊長'],[80,'偵查隊長'],[72,'分隊長'],[64,'小隊長'],[55,'偵查佐'],[45,'警員'],[0,'實習警員']];
+const LEGAL=[[90,'無罪釋放'],[75,'罪證不足，不起訴'],[60,'交保候傳'],[45,'限制出境'],[30,'羈押禁見'],[0,'當庭認罪']];
+function score(st,role){
+ const C=byId(st.caseId), used=st.limit-st.rounds, total=C.evidence.length, contraTotal=C.evidence.filter(e=>e.contra).length;
+ const mul=TIER_MUL[st.limit]||1;
+ if(role==='inter'){
+  const win=st.end==='broke';
+  const eff=win?30*clamp(1-(used-4)/Math.max(1,st.limit-4)*0.9,0,1):0;
+  const evd=25*Math.min(1,usedCount(st)/total);
+  const con=20*(contraTotal?Math.min(1,st.contraFound.length/contraTotal):1);
+  const mot=C.evidence.some(e=>e.motive&&st.used[e.id])?10:0;
+  const sty=Math.max(0,15-st.insultN*5-st.overN*3-Math.max(0,st.stall-2)*2);
+  let total100=Math.round((eff+evd+con+mot+sty)*mul);
+  if(!win) total100=Math.min(44,Math.round(total100*0.55));
+  total100=clamp(total100,0,100);
+  return {total:total100,win,title:(POLICE.find(p=>total100>=p[0])||POLICE[POLICE.length-1])[1],
+   parts:[['破案效率',Math.round(eff),30],['證物運用',Math.round(evd),25],['戳破說詞',Math.round(con),20],['找出動機',mot,10],['審訊風度',sty,15]],mul};
+ }
+ const win=st.end!=='broke';
+ const surv=win?40:30*clamp(used/st.limit,0,1);
+ const calm=30*clamp(1-st.P/90,0,1);
+ const cons=Math.max(0,20-st.selfContra*10);
+ const lips=Math.max(0,10-st.leaks*5);
+ let total100=Math.round((surv+calm+cons+lips)*(win?mul:1));
+ if(!win) total100=Math.min(29,total100);
+ total100=clamp(total100,0,100);
+ return {total:total100,win,title:(LEGAL.find(p=>total100>=p[0])||LEGAL[LEGAL.length-1])[1],
+  parts:[['撐過審訊',Math.round(surv),40],['保持冷靜',Math.round(calm),30],['口供一致',cons,20],['守口如瓶',lips,10]],mul};
+}
+
+root.Engine={CASES,PERS,byId,newGame,parseQuestion,aiQuestion,resolve,hints,score,norm,bandOf,TIER_MUL};
+if(typeof module!=='undefined') module.exports=root.Engine;
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+/* 瘋狂審訊室・角色繪製引擎：人類三種畫風＋六種動物，嫌犯與審問官共用同一套表情骨架 */
+(function(root){
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ramp=(p,a,b)=>clamp((p-a)/(b-a),0,1);
+const lerp=(a,b,k)=>a+(b-a)*k;
+const f=n=>Math.round(n*10)/10;
+const rnd=i=>{const x=Math.sin(i*12.9898)*43758.5453;return x-Math.floor(x);};
+const reduce=typeof matchMedia!=='undefined'&&matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+const HUMAN={
+ comic:{wall:'#efdcae',wall2:'#e2c98f',bgLine:'#d6b468',mirror:'#3c4a52',frame:'#15130f',clock:'#fff6df',table:'#6e4f33',tableTop:'#a07a52',
+  ol:'#15130f',ow:3,skin:'#f6c9a0',shade:'#eaae82',hair:'#1f1d22',browC:'#15130f',shirt:'#3d6fb6',collar:'#2b5592',
+  hx:200,hy:148,rx:58,ry:68,eyeDx:22,eyeDy:-2,eyeR:12.5,pupil:3.4,browGap:19,browL:24,browW:5,mouthY:42,mouthW:28,noseY:16,
+  handR:15,shoulderW:80,shoulderY:236,neckW:30,earY:4,earR:12,armW:24,sweatC:'#9fd3f0',sweatS:7,cup:'#fffdf5',cupBand:'#d9483b',folder:'#e7c46a',
+  cone:'#fff3c4',coneO:0.2,lampShade:'#2f6b4f',fxFill:'#ffffff',fxStroke:'#15130f',fxSW:5,tearW:6,font:900,board:'#b98b55'},
+ chibi:{wall:'#e7e1f6',wall2:'#d9d0f0',bgLine:'#cfc4ee',mirror:'#8d86b8',frame:'#5a3d33',clock:'#ffffff',table:'#b77a4b',tableTop:'#dda574',
+  ol:'#5a3d33',ow:2.6,skin:'#ffe0c7',shade:'#f6c8a6',hair:'#6b4a3a',browC:'#6b4a3a',shirt:'#f08a5d',collar:'#d86d40',
+  hx:200,hy:156,rx:86,ry:80,eyeDx:31,eyeDy:14,eyeR:12.5,pupil:3,browGap:24,browL:18,browW:4,mouthY:44,mouthW:20,noseY:30,
+  handR:14,shoulderW:56,shoulderY:246,neckW:24,earY:14,earR:13,armW:20,sweatC:'#8fd0f2',sweatS:8,cup:'#ffffff',cupBand:'#f08a5d',folder:'#9fd3c0',
+  cone:'#ffffff',coneO:0.18,lampShade:'#f2b6c6',fxFill:'#ffffff',fxStroke:'#6b4a3a',fxSW:5,tearW:7,font:900,board:'#e0b48a'},
+ real:{wall:'#3a3f46',wall2:'#30343a',bgLine:'#444a52',mirror:'#1d2328',frame:'#22262b',clock:'#d9d4c8',table:'#2e2a26',tableTop:'#4b453e',
+  ol:'#3e2c22',ow:1.2,skin:'#c9a183',shade:'#a97e60',hair:'#262120',browC:'#2a2320',shirt:'#5a646e',collar:'#e6e2da',
+  hx:200,hy:146,rx:50,ry:64,eyeDx:19,eyeDy:-3,eyeR:8.5,pupil:3,browGap:12,browL:21,browW:3.6,mouthY:39,mouthW:22,noseY:16,
+  handR:12,shoulderW:90,shoulderY:236,neckW:30,earY:2,earR:10,armW:26,sweatC:'#dbe7ee',sweatS:4.5,cup:'#d8d3c8',cupBand:'#8a4a3a',folder:'#b49a64',
+  cone:'#ffd894',coneO:0.12,lampShade:'#1e2226',fxFill:'#e9e2d0',fxStroke:'#1a1d21',fxSW:3,tearW:3.5,font:700,board:'#5a4a38'}
+};
+const ANIMALS={
+ fox:{name:'狐狸',fur:'#e8833a',dark:'#c4642a',muzzle:'#fff4e6',ear:'pointy',inner:'#3a2a22',nose:'#2a1d18'},
+ raccoon:{name:'浣熊',fur:'#9097a1',dark:'#6b717b',muzzle:'#eef0f2',ear:'round',inner:'#5b6068',mask:'#2b2d33',nose:'#1d1e22',whisk:true},
+ cat:{name:'貓咪',fur:'#f0a54a',dark:'#d4842c',muzzle:'#fff5e8',ear:'tri',inner:'#f5b5a8',stripes:true,nose:'#e07a7a',whisk:true},
+ dog:{name:'柴犬',fur:'#e0a15c',dark:'#c27f3a',muzzle:'#fff8ee',ear:'tri',inner:'#f6d6b8',nose:'#2a1d18'},
+ bear:{name:'熊',fur:'#8a5a3b',dark:'#6d452c',muzzle:'#d8b08c',ear:'round',inner:'#c89a74',nose:'#2a1d18'},
+ rabbit:{name:'兔子',fur:'#f4f1ee',dark:'#ddd6d0',muzzle:'#ffffff',ear:'long',inner:'#f5b5c2',nose:'#e88a9a',whisk:true}
+};
+const LOOKS=[{id:'comic',name:'漫畫風'},{id:'chibi',name:'可愛Q版'},{id:'real',name:'寫實風'},{id:'fox',name:'狐狸'},{id:'raccoon',name:'浣熊'},{id:'cat',name:'貓咪'},{id:'dog',name:'柴犬'},{id:'bear',name:'熊'},{id:'rabbit',name:'兔子'}];
+
+function buildS(id,role){
+ let S;
+ if(HUMAN[id]) S=Object.assign({},HUMAN[id],{kind:id});
+ else {
+  const A=ANIMALS[id]||ANIMALS.fox;
+  S=Object.assign({},HUMAN.comic,{kind:'animal',animal:id,A,skin:A.fur,shade:A.dark,hair:A.fur,browC:'#2a1d18',ol:'#2a1d18',
+   rx:62,ry:58,hy:152,eyeDx:22,eyeDy:-8,eyeR:11,browGap:15,mouthY:34,mouthW:20,earY:0,shirt:'#5b6f8c',collar:'#465a76'});
+ }
+ S.role=role;
+ if(role==='inter'){
+  S.shirt=S.kind==='real'?'#d8d6cf':'#ecebe4'; S.collar='#ffffff'; S.tie=S.kind==='chibi'?'#3d6fb6':'#b8322f';
+  if(S.kind!=='animal'){S.hair=S.kind==='real'?'#3a2c22':'#3b2a20';S.neat=true;}
+ }
+ return S;
+}
+
+/* ---------- 嫌犯：由壓力值算出所有部件參數 ---------- */
+function baseState(P){
+ return {P,stage:0,brow:0,raise:0,open:1,pupil:1,gx:0,gy:0,sweat:0,trem:0,red:0,tearWell:false,headDY:0,tilt:0,mouth:'flat',pose:'table',fx:null,
+  shake:0,flash:0,blinkP:3.4,lampSwing:0,cupJump:0,eyeMode:'normal',blush:0,veins:false,shadow:0,streams:false,scale:1,big2:1,k:0,flicker:false,slamDown:false,gloom:0,sparkle:false};
+}
+function suspectState(P,mode,t,talking){
+ const s=P>=90?9:Math.floor(P/10), st=baseState(P);
+ Object.assign(st,{stage:s,brow:ramp(P,15,70),raise:(1-ramp(P,0,20))*7,open:0.6+0.4*ramp(P,5,40)+0.25*ramp(P,70,88),
+  pupil:1-0.45*ramp(P,55,88),sweat:clamp(Math.floor((P-26)/9),0,7),trem:ramp(P,40,88)*2.2,red:ramp(P,62,85),
+  tearWell:s===7,headDY:s===0?-8:(s>=3?4:0),tilt:s===0?-5:0,blush:ramp(P,55,85),gloom:ramp(P,50,100)});
+ switch(s){
+  case 0: st.mouth='smirk';st.pose='behindHead'; if(t%5<1.1){st.gy=-0.9;st.gx=0.3;} break;
+  case 1: { const sigh=t%4<0.9; st.mouth=sigh?'o':'flat';st.pose='tap'; if(sigh) st.fx={text:'唉～',x:292,y:118,size:22,rot:-8}; if(t%6>3.5){st.gx=0.9;st.gy=-0.6;} break; }
+  case 2: st.mouth='frown';st.pose='crossed';st.gx=-0.75;st.gy=0.2; break;
+  case 3: { const g=t%3.2<0.5; st.mouth=g?'tight':'frown';st.pose='clasp';st.gx=Math.sin(t*1.3)*0.6; if(g) st.fx={text:'咕嘟',x:290,y:214,size:18,rot:6}; break; }
+  case 4: st.mouth='wavy';st.pose=(t%3.6<1.3)?'wipe':'clasp';st.gx=Math.sin(t*2.2)*0.7; break;
+  case 5: st.mouth='wavy';st.pose='fidget';st.blinkP=0.75;st.gx=Math.sign(Math.sin(t*3.1))*0.8;st.gy=Math.sin(t*1.7)*0.4; break;
+  case 6: st.mouth='o';st.pose='scratch';st.gy=0.5;st.gx=-0.3; break;
+  case 7: st.mouth='wavyOpen';st.pose='shaky';st.gy=0.7; break;
+  case 8: slamCycle(st,t,2.6); break;
+  case 9: breakdown(st,t,mode); break;
+ }
+ finish(st,t,talking);
+ return st;
+}
+function slamCycle(st,t,len){
+ const c=(t%len)/len; st.brow=-0.6;
+ if(c<0.33){st.pose='raise';st.k=c/0.33;st.mouth='shout';st.veins=true;}
+ else if(c<0.7){st.pose='slam';st.mouth='shout';st.veins=true;st.fx={text:'砰！',x:300,y:250,size:40,rot:-10};
+  st.shake=c<0.42?6:ramp(0.7-c,0,0.28)*4;st.cupJump=c<0.42?1:0;st.lampSwing=c<0.42?1:1-(c-0.42)/0.28;}
+ else {st.pose='slam';st.mouth='flat';st.gy=0.4;st.brow=0.6;}
+}
+function breakdown(st,t,mode){
+ st.sweat=6;
+ if(mode==='cry'){
+  Object.assign(st,{eyeMode:'squeeze',brow:1.4,mouth:'wail',pose:'face',streams:true,headDY:14+Math.abs(Math.sin(t*5))*5,trem:0.6,tilt:Math.sin(t*5)*2,blush:1});
+  if(t%2<1) st.fx={text:'嗚嗚……',x:300,y:108,size:24,rot:8};
+ } else if(mode==='hyst'){
+  Object.assign(st,{eyeMode:'wide',open:1.4,pupil:0.35,brow:1.3,mouth:'scream',pose:'hair',trem:4.5,shake:2.5,flash:0.16+0.1*Math.sin(t*14),blush:1});
+  st.fx={text:'啊啊啊——！',x:298,y:95,size:30,rot:-12,jit:true};
+ } else if(mode==='mad'){
+  Object.assign(st,{eyeMode:'mad',open:1.35,pupil:0.3,big2:1.25,brow:-0.3,raise:9,mouth:'grin',pose:'spread',trem:0.4,tilt:Math.sin(t*1.1)*14,shadow:0.45,sweat:0,blush:0,headDY:2,flicker:true});
+  st.fx={text:(t%1.2<0.6)?'哈哈哈哈':'呵呵呵……',x:312,y:104+Math.sin(t*3)*6,size:24,rot:10};
+ } else {
+  Object.assign(st,{eyeMode:'angry',open:1.2,pupil:0.5,brow:-1.2,mouth:'shout',pose:'fists',veins:true,scale:1.08,headDY:10,trem:1.5});
+  const c=(t%1.8)/1.8;
+  if(c<0.12){st.shake=7;st.cupJump=1;st.lampSwing=1;st.slamDown=true;st.fx={text:'碰！！',x:300,y:256,size:44,rot:-8};}
+  else {st.lampSwing=Math.max(0,1-(c-0.12)*3);st.fx={text:'是我又怎樣！',x:290,y:95,size:26,rot:-6};}
+ }
+}
+function finish(st,t,talking){
+ if(st.eyeMode==='normal'){ const ph=(t+0.7)%st.blinkP; if(ph<0.13) st.open=0; }
+ if(talking&&['flat','frown','smirk','tight','wavy'].includes(st.mouth)) st.mouth='talk';
+}
+
+/* ---------- 審問官：由怒氣值與局勢算出參數 ---------- */
+const INTER_STAGES=[
+ {id:'calm',name:'冷靜',desc:'翻著筆記，從容記錄'},
+ {id:'focus',name:'專注',desc:'身體前傾，緊盯嫌犯'},
+ {id:'smug',name:'胸有成竹',desc:'抱胸冷笑，勝券在握'},
+ {id:'impatient',name:'不耐煩',desc:'手指敲桌、嘆氣'},
+ {id:'annoyed',name:'惱怒',desc:'皺眉，指著嫌犯質問'},
+ {id:'furious',name:'火大',desc:'拍桌大吼'},
+ {id:'rage',name:'暴怒',desc:'雙拳搥桌、青筋暴起'},
+ {id:'win',name:'破案得意',desc:'握拳慶祝'},
+ {id:'lose',name:'挫敗',desc:'扶額嘆氣'}
+];
+function interStageIdx(m,flag){
+ if(flag==='win') return 7; if(flag==='lose') return 8;
+ if(flag==='smug'&&m<45) return 2;
+ return m<15?0:m<30?1:m<50?3:m<70?4:m<85?5:6;
+}
+function interState(m,flag,t,talking){
+ const st=baseState(m), idx=interStageIdx(m,flag); st.stage=idx; st.sweat=0;
+ switch(INTER_STAGES[idx].id){
+  case 'calm': st.mouth='flat';st.pose='notes';st.brow=0.1;st.open=0.9;st.gy=(t%5<3.5)?0.6:0;st.gx=-0.2; break;
+  case 'focus': st.mouth='flat';st.pose='lean';st.brow=-0.2;st.gx=-0.75;st.headDY=6;st.scale=1.04; break;
+  case 'smug': st.mouth='smirk';st.pose='crossed';st.raise=7;st.open=0.72;st.gx=-0.6; break;
+  case 'impatient': { const sigh=t%4<0.9; st.mouth=sigh?'o':'frown';st.pose='tap';st.brow=0.3;st.gy=sigh?-0.7:0;st.gx=-0.4; if(sigh) st.fx={text:'唉……',x:300,y:118,size:22,rot:-8}; break; }
+  case 'annoyed': st.mouth=(t%2.4<1.2)?'shout':'frown';st.pose='point';st.brow=-0.8;st.gx=-0.85;st.trem=0.4; break;
+  case 'furious': slamCycle(st,t,2.4); st.gx=-0.7; st.trem=1; if(st.fx) st.fx.text='說實話！'; break;
+  case 'rage': Object.assign(st,{eyeMode:'angry',open:1.2,pupil:0.5,brow:-1.2,mouth:'shout',pose:'fists',veins:true,scale:1.06,headDY:8,trem:2.2,shake:1.2,gx:-0.6});
+   st.fx={text:'給我說實話！',x:290,y:92,size:26,rot:-6}; break;
+  case 'win': Object.assign(st,{eyeMode:'happy',mouth:'smile',pose:'cheer',brow:-0.1,sparkle:true,headDY:-4}); st.fx={text:'破案！',x:300,y:96,size:34,rot:-8}; break;
+  case 'lose': Object.assign(st,{mouth:'wavy',pose:'facepalm',brow:1.1,gloom:1,headDY:10,gy:0.8,open:0.7}); st.fx=(t%3<1.5)?{text:'唉……',x:300,y:118,size:22,rot:8}:null; break;
+ }
+ if(idx===4) st.blush=0.4;
+ finish(st,t,talking);
+ return st;
+}
+
+/* ---------- 繪製 ---------- */
+function room(S,st,t){
+ let o=`<rect width="400" height="360" fill="${S.wall}"/><rect y="200" width="400" height="160" fill="${S.wall2}"/>`;
+ if(S.role==='inter'){
+  o+=`<rect x="14" y="36" width="112" height="104" rx="3" fill="${S.board}" stroke="${S.frame}" stroke-width="${Math.max(3,S.ow+1)}"/>`;
+  const pins=[[30,50,34,26],[74,46,38,30],[40,92,30,34],[84,94,32,28]];
+  pins.forEach((p,i)=>{o+=`<rect x="${p[0]}" y="${p[1]}" width="${p[2]}" height="${p[3]}" fill="${i%2?'#f4efe3':'#fffaf0'}" stroke="${S.frame}" stroke-width="1"/><circle cx="${p[0]+p[2]/2}" cy="${p[1]+3}" r="2.5" fill="#d9483b"/>`;});
+  o+=`<path d="M47 53 L93 49 L55 95 L100 97" stroke="#d9483b" stroke-width="1.5" fill="none"/>`;
+ } else {
+  o+=`<rect x="16" y="40" width="96" height="118" rx="3" fill="${S.mirror}" stroke="${S.frame}" stroke-width="${Math.max(3,S.ow+1)}"/>`;
+  o+=`<path d="M34 150 L92 48 M54 150 L104 62" stroke="#ffffff" stroke-width="5" opacity="0.1"/>`;
+ }
+ o+=`<circle cx="344" cy="66" r="22" fill="${S.clock}" stroke="${S.frame}" stroke-width="${Math.max(2.5,S.ow)}"/>`;
+ const sa=((t*6)%360)*Math.PI/180, ma=((t*0.4)%360)*Math.PI/180+1;
+ o+=`<line x1="344" y1="66" x2="${f(344+Math.sin(ma)*12)}" y2="${f(66-Math.cos(ma)*12)}" stroke="${S.frame}" stroke-width="3" stroke-linecap="round"/>`;
+ o+=`<line x1="344" y1="66" x2="${f(344+Math.sin(sa)*17)}" y2="${f(66-Math.cos(sa)*17)}" stroke="#d9483b" stroke-width="1.5"/>`;
+ if(S.kind==='comic'||S.kind==='animal'){
+  const I=clamp(ramp(st.P,35,85)+(st.stage===9&&S.role!=='inter'?1:0),0,1);
+  if(I>0){ const sp=st.stage===9?14:4;
+   for(let i=0;i<30;i++){const a=i/30*Math.PI*2+0.05*(i%3);const r1=118+((i*37+Math.floor(t*sp))%5)*14;
+    o+=`<line x1="${f(200+Math.cos(a)*r1)}" y1="${f(150+Math.sin(a)*r1)}" x2="${f(200+Math.cos(a)*340)}" y2="${f(150+Math.sin(a)*340)}" stroke="${S.bgLine}" stroke-width="${2+(i%3)*1.5}" opacity="${f(I)}"/>`;}
+  }
+ }
+ if(S.kind==='chibi'){
+  if(st.gloom>0) for(let i=0;i<9;i++){const x=112+i*22;o+=`<line x1="${x}" y1="58" x2="${x}" y2="${100+((i*13)%5)*12}" stroke="#8d7fc4" stroke-width="2.5" stroke-linecap="round" opacity="${f(st.gloom*0.7)}"/>`;}
+  else for(let i=0;i<5;i++){const x=60+i*72, y=190+Math.sin(t*1.5+i)*6; o+=`<circle cx="${x}" cy="${f(y)}" r="${4+i%3}" fill="#cfc4ee"/>`;}
+ } else if(st.gloom>0.5&&S.role==='inter'){
+  for(let i=0;i<7;i++){const x=130+i*24;o+=`<line x1="${x}" y1="60" x2="${x}" y2="${96+((i*13)%5)*10}" stroke="#6a6aa0" stroke-width="2" opacity="${f(st.gloom*0.5)}"/>`;}
+ }
+ return o;
+}
+
+function body(S,st,hx){
+ const w=S.shoulderW, y0=S.shoulderY, ny=S.hy+st.headDY+S.ry*0.72;
+ let o=`<rect x="${hx-S.neckW/2}" y="${f(ny)}" width="${S.neckW}" height="${f(Math.max(10,y0-ny+12))}" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ if(S.kind==='real') o+=`<rect x="${hx-S.neckW/2}" y="${f(ny)}" width="${S.neckW}" height="14" fill="${S.shade}" opacity="0.6"/>`;
+ o+=`<path d="M${hx-w-28} 360 L${hx-w-14} ${y0+22} Q${hx-w+4} ${y0} ${hx-28} ${y0-6} L${hx+28} ${y0-6} Q${hx+w-4} ${y0} ${hx+w+14} ${y0+22} L${hx+w+28} 360 Z" fill="${S.shirt}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ o+=`<path d="M${hx-22} ${y0-6} L${hx} ${y0+18} L${hx+22} ${y0-6} Z" fill="${S.tie?S.shirt:S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ if(S.tie) o+=`<path d="M${hx-6} ${y0+6} L${hx+6} ${y0+6} L${hx+9} ${y0+44} L${hx} ${y0+54} L${hx-9} ${y0+44} Z" fill="${S.tie}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/><path d="M${hx-7} ${y0-2} L${hx+7} ${y0-2} L${hx+5} ${y0+8} L${hx-5} ${y0+8} Z" fill="${S.tie}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ o+=`<path d="M${hx-26} ${y0-7} L${hx-4} ${y0+20} L${hx-30} ${y0+14} Z M${hx+26} ${y0-7} L${hx+4} ${y0+20} L${hx+30} ${y0+14} Z" fill="${S.collar}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/>`;
+ if(S.role==='inter'){const bx=hx-w*0.55, by=y0+24; o+=`<path d="M${bx} ${by-9} L${bx+8} ${by-5} L${bx+7} ${by+4} L${bx} ${by+9} L${bx-7} ${by+4} L${bx-8} ${by-5} Z" fill="#e4b443" stroke="${S.ol}" stroke-width="${Math.max(1.2,S.ow*0.6)}"/><circle cx="${bx}" cy="${by}" r="2.5" fill="#b8322f"/>`;}
+ else if(S.kind==='chibi') o+=`<rect x="${hx+18}" y="${y0+22}" width="32" height="16" rx="3" fill="#fff" stroke="${S.ol}" stroke-width="2"/><text x="${hx+34}" y="${y0+34}" font-size="11" font-weight="700" text-anchor="middle" fill="${S.ol}" font-family="'Noto Sans TC',sans-serif">0918</text>`;
+ return o;
+}
+
+function eye(S,st,cx,cy,side,t){
+ const R=S.eyeR*(side>0?st.big2:1), o=st.open, gx=st.gx, gy=st.gy, real=S.kind==='real';
+ if(st.eyeMode==='squeeze'){
+  const k=R*0.9, d=side<0?`M${f(cx-k)} ${f(cy-k*0.6)} L${f(cx+k*0.6)} ${f(cy)} L${f(cx-k)} ${f(cy+k*0.6)}`:`M${f(cx+k)} ${f(cy-k*0.6)} L${f(cx-k*0.6)} ${f(cy)} L${f(cx+k)} ${f(cy+k*0.6)}`;
+  return `<path d="${d}" fill="none" stroke="${S.browC}" stroke-width="${Math.max(2.5,S.browW*0.8)}" stroke-linecap="round" stroke-linejoin="round"/>`;
+ }
+ if(st.eyeMode==='happy') return `<path d="M${f(cx-R)} ${f(cy+3)} Q${cx} ${f(cy-R*1.1)} ${f(cx+R)} ${f(cy+3)}" fill="none" stroke="${S.browC}" stroke-width="${Math.max(2.5,S.browW*0.8)}" stroke-linecap="round"/>`;
+ if(st.eyeMode==='mad'&&S.kind==='chibi'){
+  let d=`M${cx} ${cy}`;
+  for(let a=0.3;a<4*Math.PI;a+=0.3){const r=a/(4*Math.PI)*R*1.05;d+=` L${f(cx+Math.cos(a+t*4*side)*r)} ${f(cy+Math.sin(a+t*4*side)*r)}`;}
+  return `<circle cx="${cx}" cy="${cy}" r="${f(R*1.15)}" fill="#fff" stroke="${S.ol}" stroke-width="${S.ow}"/><path d="${d}" fill="none" stroke="#2a2030" stroke-width="2.2"/>`;
+ }
+ if(o<0.12) return `<path d="M${f(cx-R)} ${cy} Q${cx} ${f(cy+R*0.45)} ${f(cx+R)} ${cy}" fill="none" stroke="${S.browC}" stroke-width="${real?2:S.ow+0.6}" stroke-linecap="round"/>`;
+ const ry=(real?R*0.62:R*1.15)*Math.max(1,o), cover=clamp(1-o,0,1);
+ let s='';
+ if(S.kind==='chibi'&&st.eyeMode==='normal'){
+  s+=`<ellipse cx="${cx}" cy="${cy}" rx="${f(R)}" ry="${f(ry)}" fill="#2a2030"/>`;
+  const px=cx+gx*R*0.25, py=cy+gy*ry*0.25;
+  s+=`<circle cx="${f(px+R*0.3)}" cy="${f(py-ry*0.35)}" r="${f(R*0.36)}" fill="#fff"/><circle cx="${f(px-R*0.3)}" cy="${f(py+ry*0.35)}" r="${f(R*0.16)}" fill="#fff"/>`;
+  if(st.red>0.3) s+=`<path d="M${f(cx-R*0.7)} ${f(cy+ry*0.55)} Q${cx} ${f(cy+ry*0.95)} ${f(cx+R*0.7)} ${f(cy+ry*0.55)}" stroke="#bfe6ff" stroke-width="2.5" fill="none" opacity="${f(st.red)}"/>`;
+ } else if(real){
+  const tear=st.red>0.4;
+  s+=`<path d="M${f(cx-R)} ${cy} Q${cx} ${f(cy-ry*1.2)} ${f(cx+R)} ${cy} Q${cx} ${f(cy+ry)} ${f(cx-R)} ${cy} Z" fill="${tear?'#f0dad2':'#eee8dd'}" stroke="${tear?'#b4554a':S.ol}" stroke-width="1"/>`;
+  const ir=R*0.44, px=cx+gx*R*0.4, py=cy+gy*ry*0.3;
+  s+=`<circle cx="${f(px)}" cy="${f(py)}" r="${f(ir)}" fill="#4a3324"/><circle cx="${f(px)}" cy="${f(py)}" r="${f(ir*0.5*st.pupil+0.4)}" fill="#111"/><circle cx="${f(px+ir*0.35)}" cy="${f(py-ir*0.35)}" r="1" fill="#fff"/>`;
+  s+=`<path d="M${f(cx-R*0.8)} ${f(cy+ry*1.15)} Q${cx} ${f(cy+ry*1.7)} ${f(cx+R*0.8)} ${f(cy+ry*1.15)}" stroke="${S.shade}" stroke-width="1.2" fill="none" opacity="${f(0.4+ramp(st.P,30,80)*0.6)}"/>`;
+ } else {
+  s+=`<ellipse cx="${cx}" cy="${cy}" rx="${f(R)}" ry="${f(ry)}" fill="#fff" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+  const pr=S.pupil*st.pupil*(S.kind==='chibi'?1.15:1), px=cx+gx*R*0.45, py=cy+gy*ry*0.45;
+  s+=`<circle cx="${f(px)}" cy="${f(py)}" r="${f(pr)}" fill="#111"/>`;
+  if(st.red>0.3) s+=`<path d="M${f(cx-R+2)} ${cy+2} l5 -1 M${f(cx+R-2)} ${cy-1} l-5 2 M${f(cx-R+3)} ${cy-3} l4 1" stroke="#d9483b" stroke-width="1.3" opacity="${f(st.red)}"/>`;
+ }
+ if(cover>0.02){
+  const top=cy-ry*(real?1.2:1)-2, h=ry*2.1, lid=top+cover*h*0.88+2;
+  s+=`<path d="M${f(cx-R-3)} ${f(top-8)} L${f(cx+R+3)} ${f(top-8)} L${f(cx+R+3)} ${f(lid)} L${f(cx-R-3)} ${f(lid)} Z" fill="${st.lidC||S.skin}"/>`;
+  s+=`<path d="M${f(cx-R-1)} ${f(lid+1)} Q${cx} ${f(lid-1)} ${f(cx+R+1)} ${f(lid+1)}" stroke="${S.browC}" stroke-width="${real?1.6:S.ow+0.5}" stroke-linecap="round" fill="none"/>`;
+ }
+ return s;
+}
+
+function mouth(S,st,t,hx,my){
+ const W=S.mouthW, dark='#4a1616', sw=Math.max(2,S.ow);
+ const L=`stroke="${S.ol}" stroke-width="${sw}" stroke-linecap="round" stroke-linejoin="round"`;
+ switch(st.mouth){
+  case 'smirk': return `<path d="M${hx-W/2} ${my+1} Q${hx+2} ${my+6} ${hx+W/2} ${my-7}" fill="none" ${L}/>`;
+  case 'flat': return `<path d="M${hx-W/2} ${my} Q${hx} ${my+2} ${hx+W/2} ${my+1}" fill="none" ${L}/>`;
+  case 'frown': return `<path d="M${hx-W/2} ${my+5} Q${hx} ${my-4} ${hx+W/2} ${my+5}" fill="none" ${L}/>`;
+  case 'tight': return `<path d="M${f(hx-W*0.3)} ${my+1} L${f(hx+W*0.3)} ${my+1}" fill="none" ${L}/>`;
+  case 'talk': { const ry=W*(0.05+0.17*Math.abs(Math.sin(t*14))*(0.6+0.4*Math.abs(Math.sin(t*5.3)))); return `<ellipse cx="${hx}" cy="${f(my+2)}" rx="${f(W*0.3)}" ry="${f(Math.max(1.5,ry))}" fill="${dark}" ${L}/>`; }
+  case 'wavy': { let d=''; for(let i=0;i<=8;i++){const x=hx-W/2+W*i/8, y=my+2+Math.sin(i*2.2+t*26)*2.4; d+=(i?' L':'M')+f(x)+' '+f(y);} return `<path d="${d}" fill="none" ${L}/>`; }
+  case 'o': return `<ellipse cx="${hx}" cy="${my+3}" rx="${f(W*0.17)}" ry="${f(W*0.22)}" fill="${dark}" ${L}/>`;
+  case 'wavyOpen': { let d=''; for(let i=0;i<=8;i++){const x=hx-W/2+W*i/8, y=my+Math.sin(i*2.2+t*26)*2; d+=(i?' L':'M')+f(x)+' '+f(y);} d+=` Q${hx} ${f(my+W*0.5)} ${hx-W/2} ${my} Z`; return `<path d="${d}" fill="${dark}" ${L}/>`; }
+  case 'shout': { const a=W*0.62, top=my-4, bot=my+W*0.85+Math.sin(t*30)*2;
+   return `<path d="M${f(hx-a)} ${top} Q${hx} ${top-8} ${f(hx+a)} ${top} Q${f(hx+a*0.8)} ${f(bot)} ${hx} ${f(bot)} Q${f(hx-a*0.8)} ${f(bot)} ${f(hx-a)} ${top} Z" fill="${dark}" ${L}/>`+
+    `<path d="M${f(hx-a*0.8)} ${top+1} Q${hx} ${top-5} ${f(hx+a*0.8)} ${top+1} L${f(hx+a*0.7)} ${top+6} Q${hx} ${top+1} ${f(hx-a*0.7)} ${top+6} Z" fill="#fff"/>`+
+    `<ellipse cx="${hx}" cy="${f(bot-5)}" rx="${f(a*0.5)}" ry="4" fill="#d9625a"/>`; }
+  case 'smile': { const a=W*0.6; return `<path d="M${f(hx-a)} ${my-2} Q${hx} ${my-5} ${f(hx+a)} ${my-2} Q${f(hx+a*0.75)} ${f(my+W*0.6)} ${hx} ${f(my+W*0.62)} Q${f(hx-a*0.75)} ${f(my+W*0.6)} ${f(hx-a)} ${my-2} Z" fill="${dark}" ${L}/><ellipse cx="${hx}" cy="${f(my+W*0.42)}" rx="${f(a*0.45)}" ry="3.5" fill="#d9625a"/>`; }
+  case 'scream': { const ry=W*(0.72+0.08*Math.sin(t*30)); return `<ellipse cx="${hx}" cy="${f(my+ry*0.55)}" rx="${f(W*0.42)}" ry="${f(ry)}" fill="${dark}" ${L}/><ellipse cx="${hx}" cy="${f(my+ry*1.2)}" rx="${f(W*0.25)}" ry="4" fill="#d9625a"/>`; }
+  case 'grin': { const a=W*1.05; let s=`<path d="M${f(hx-a)} ${my-8} Q${hx} ${f(my+W*0.95)} ${f(hx+a)} ${my-8} Q${hx} ${f(my+W*0.35)} ${f(hx-a)} ${my-8} Z" fill="#f2ede2" ${L}/>`;
+   for(let i=-3;i<=3;i++){const x=hx+i*a/4.2, k=1-(i/4)*(i/4); s+=`<line x1="${f(x)}" y1="${f(my+W*0.2*k)}" x2="${f(x)}" y2="${f(my+W*0.46*k)}" stroke="${S.ol}" stroke-width="1.3"/>`;} return s; }
+  case 'wail': { const a=W*0.6, wb=Math.sin(t*10)*2; return `<path d="M${f(hx-a)} ${my+8} Q${hx} ${f(my-10+wb)} ${f(hx+a)} ${my+8} Q${hx} ${f(my+W*0.6)} ${f(hx-a)} ${my+8} Z" fill="${dark}" ${L}/><ellipse cx="${hx}" cy="${f(my+W*0.38)}" rx="${f(a*0.45)}" ry="3.5" fill="#d9625a"/>`; }
+ }
+ return '';
+}
+
+function drop(x,y,s,fill,stroke,sw,op){
+ return `<path d="M${f(x)} ${f(y-s)} Q${f(x+s*0.9)} ${f(y+s*0.4)} ${f(x)} ${f(y+s*0.9)} Q${f(x-s*0.9)} ${f(y+s*0.4)} ${f(x)} ${f(y-s)} Z" fill="${fill}" ${stroke?`stroke="${stroke}" stroke-width="${sw}"`:''} opacity="${f(op)}"/>`;
+}
+const SWEAT=[[-1.05,-0.25],[1.04,-0.4],[0.78,-0.78],[-0.72,-0.74],[1.12,0.12],[-1.12,0.08],[0.3,-0.98]];
+
+function hair(S,st,hx,hy,t,messy){
+ const rx=S.rx, ry=S.ry, P2=(a,b)=>`${f(hx+a*rx)} ${f(hy+b*ry)}`;
+ if(S.neat){
+  const d=`M${P2(-1.04,-0.05)} Q${P2(-1.1,-1.15)} ${P2(0,-1.12)} Q${P2(1.12,-1.1)} ${P2(1.04,-0.05)} Q${P2(0.95,-0.5)} ${P2(0.5,-0.62)} Q${P2(-0.05,-0.72)} ${P2(-0.35,-0.5)} Q${P2(-0.7,-0.6)} ${P2(-1.04,-0.05)} Z`;
+  return `<path d="${d}" fill="${S.hair}" ${S.kind==='real'?'':`stroke="${S.ol}" stroke-width="${S.ow}"`} stroke-linejoin="round"/><path d="M${P2(-0.35,-0.52)} Q${P2(-0.2,-0.9)} ${P2(0.1,-1.08)}" stroke="#5a4636" stroke-width="2" fill="none"/>`;
+ }
+ if(S.kind==='comic'){
+  const pts=[[-1.06,-0.05],[-1.0,-0.62],[-0.82,-0.7],[-0.78,-1.12],[-0.52,-0.92],[-0.4,-1.3],[-0.14,-1.0],[0.06,-1.36],[0.22,-1.0],[0.46,-1.28],[0.56,-0.92],[0.86,-1.08],[0.84,-0.72],[1.02,-0.64],[1.06,-0.05]];
+  let d='M'+pts.map((p,i)=>{let b=p[1]; if(messy&&b<-0.9) b=b*1.15+Math.sin(t*20+i)*0.05; return P2(p[0],b);}).join(' L');
+  d+=` L${P2(0.92,-0.25)} Q${P2(0.5,-0.72)} ${P2(0.1,-0.6)} L${P2(-0.15,-0.4)} L${P2(-0.3,-0.66)} Q${P2(-0.7,-0.7)} ${P2(-0.92,-0.25)} Z`;
+  return `<path d="${d}" fill="${S.hair}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/><path d="M${P2(-0.5,-0.95)} L${P2(-0.35,-0.8)} M${P2(0.3,-1.0)} L${P2(0.42,-0.86)}" stroke="#4a4752" stroke-width="3" stroke-linecap="round"/>`;
+ }
+ if(S.kind==='chibi'){
+  const d=`M${P2(-1.02,0.1)} Q${P2(-1.08,-1.05)} ${P2(0,-1.08)} Q${P2(1.08,-1.05)} ${P2(1.02,0.1)} Q${P2(0.9,-0.35)} ${P2(0.55,-0.45)} Q${P2(0.4,-0.25)} ${P2(0.2,-0.42)} Q${P2(0,-0.22)} ${P2(-0.22,-0.42)} Q${P2(-0.45,-0.22)} ${P2(-0.6,-0.45)} Q${P2(-0.92,-0.35)} ${P2(-1.02,0.1)} Z`;
+  const droop=ramp(st.P,30,90);
+  const ah=`M${P2(0.02,-1.06)} Q${P2(0.2,lerp(-1.42,-1.05,droop))} ${P2(lerp(0.36,0.3,droop),lerp(-1.22,-0.9,droop))}`;
+  return `<path d="${ah}" fill="none" stroke="${S.ol}" stroke-width="7" stroke-linecap="round"/><path d="${ah}" fill="none" stroke="${S.hair}" stroke-width="4" stroke-linecap="round"/>`+
+   `<path d="${d}" fill="${S.hair}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/><path d="M${P2(-0.55,-0.85)} Q${P2(-0.3,-0.98)} ${P2(-0.05,-0.92)}" stroke="#8a6450" stroke-width="4" fill="none" stroke-linecap="round"/>`;
+ }
+ const d=`M${P2(-1.02,-0.1)} Q${P2(-1.05,-1.12)} ${P2(0.05,-1.1)} Q${P2(1.08,-1.05)} ${P2(1.0,-0.1)} Q${P2(0.92,-0.55)} ${P2(0.55,-0.68)} Q${P2(-0.1,-0.75)} ${P2(-0.55,-0.6)} Q${P2(-0.9,-0.45)} ${P2(-1.02,-0.1)} Z`;
+ let s=`<path d="${d}" fill="${S.hair}"/><path d="M${P2(-0.6,-0.95)} Q${P2(-0.1,-1.05)} ${P2(0.5,-0.9)} M${P2(-0.4,-0.82)} Q${P2(0.1,-0.9)} ${P2(0.7,-0.75)}" stroke="#3d3532" stroke-width="1.2" fill="none"/>`;
+ if(messy) s+=`<path d="M${P2(-0.2,-1.08)} Q${P2(-0.4,-1.4)} ${P2(-0.6,-1.25)} M${P2(0.3,-1.06)} Q${P2(0.5,-1.45)} ${P2(0.7,-1.2)}" stroke="${S.hair}" stroke-width="2.5" fill="none"/>`;
+ return s;
+}
+
+function animalEars(S,st,hx,hy){
+ const A=S.A, rx=S.rx, ry=S.ry, sw=S.ow;
+ let o='';
+ for(const sd of [-1,1]){
+  if(A.ear==='pointy'||A.ear==='tri'){
+   const tall=A.ear==='pointy'?1.5:1.32;
+   const bx1=hx+sd*rx*0.9, by1=hy-ry*0.3, tx=hx+sd*rx*0.66, ty=hy-ry*tall, bx2=hx+sd*rx*0.18, by2=hy-ry*0.86;
+   o+=`<path d="M${f(bx1)} ${f(by1)} L${f(tx)} ${f(ty)} L${f(bx2)} ${f(by2)} Z" fill="${A.fur}" stroke="${S.ol}" stroke-width="${sw}" stroke-linejoin="round"/>`;
+   o+=`<path d="M${f(lerp(bx1,tx,0.35))} ${f(lerp(by1,ty,0.35))} L${f(tx)} ${f(ty+4)} L${f(lerp(bx2,tx,0.35))} ${f(lerp(by2,ty,0.35))} Z" fill="${A.inner}"/>`;
+  } else if(A.ear==='round'){
+   o+=`<circle cx="${f(hx+sd*rx*0.72)}" cy="${f(hy-ry*0.82)}" r="${f(rx*0.34)}" fill="${A.fur}" stroke="${S.ol}" stroke-width="${sw}"/><circle cx="${f(hx+sd*rx*0.72)}" cy="${f(hy-ry*0.82)}" r="${f(rx*0.18)}" fill="${A.inner}"/>`;
+  } else {
+   const droop=ramp(st.P,30,90)*55+(st.stage===9?20:0), bx=hx+sd*rx*0.35, by=hy-ry*0.75;
+   o+=`<g transform="rotate(${f(sd*(8+droop))} ${f(bx)} ${f(by)})"><ellipse cx="${f(bx)}" cy="${f(by-40)}" rx="15" ry="44" fill="${A.fur}" stroke="${S.ol}" stroke-width="${sw}"/><ellipse cx="${f(bx)}" cy="${f(by-38)}" rx="7" ry="32" fill="${A.inner}"/></g>`;
+  }
+ }
+ return o;
+}
+function animalFace(S,st,hx,hy){
+ const A=S.A, rx=S.rx, ry=S.ry;
+ let o='';
+ if(A.mask) for(const sd of [-1,1]) o+=`<ellipse cx="${f(hx+sd*S.eyeDx*1.05)}" cy="${f(hy+S.eyeDy+2)}" rx="${f(S.eyeR*1.9)}" ry="${f(S.eyeR*1.35)}" fill="${A.mask}" transform="rotate(${sd*-12} ${f(hx+sd*S.eyeDx)} ${hy+S.eyeDy})"/>`;
+ if(S.animal==='fox') o+=`<path d="M${f(hx-rx)} ${f(hy+ry*0.05)} Q${f(hx-rx*0.5)} ${f(hy+ry*0.15)} ${hx} ${f(hy+ry*0.05)} Q${f(hx+rx*0.5)} ${f(hy+ry*0.15)} ${f(hx+rx)} ${f(hy+ry*0.05)} Q${f(hx+rx*0.7)} ${f(hy+ry*0.95)} ${hx} ${f(hy+ry)} Q${f(hx-rx*0.7)} ${f(hy+ry*0.95)} ${f(hx-rx)} ${f(hy+ry*0.05)} Z" fill="${A.muzzle}"/>`;
+ else o+=`<ellipse cx="${hx}" cy="${f(hy+ry*0.45)}" rx="${f(rx*0.5)}" ry="${f(ry*0.36)}" fill="${A.muzzle}" stroke="${S.ol}" stroke-width="${S.ow*0.6}"/>`;
+ if(A.stripes) o+=`<path d="M${hx} ${f(hy-ry*0.95)} L${hx} ${f(hy-ry*0.65)} M${hx-12} ${f(hy-ry*0.9)} L${hx-9} ${f(hy-ry*0.66)} M${hx+12} ${f(hy-ry*0.9)} L${hx+9} ${f(hy-ry*0.66)}" stroke="${A.dark}" stroke-width="4" stroke-linecap="round"/>`;
+ o+=`<ellipse cx="${hx}" cy="${f(hy+ry*0.26)}" rx="7" ry="5" fill="${A.nose}"/>`;
+ if(A.whisk) for(const sd of [-1,1]) o+=`<path d="M${hx+sd*20} ${f(hy+ry*0.4)} l${sd*24} -4 M${hx+sd*20} ${f(hy+ry*0.48)} l${sd*26} 3" stroke="${S.ol}" stroke-width="1.4" stroke-linecap="round"/>`;
+ return o;
+}
+
+function head(S,st,t,hx,hy,mode){
+ const rx=S.rx, ry=S.ry, real=S.kind==='real', animal=S.kind==='animal';
+ let o='';
+ if(animal) o+=animalEars(S,st,hx,hy);
+ else for(const sd of [-1,1]) o+=`<ellipse cx="${hx+sd*(rx-3)}" cy="${hy+S.earY}" rx="${f(S.earR*0.7)}" ry="${S.earR}" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ if(S.kind==='chibi'||animal) o+=`<ellipse cx="${hx}" cy="${hy}" rx="${rx}" ry="${ry}" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ else {
+  const chin=real?1.05:1.08;
+  o+=`<path d="M${hx-rx} ${hy-10} Q${hx-rx} ${hy-ry} ${hx} ${hy-ry} Q${hx+rx} ${hy-ry} ${hx+rx} ${hy-10} Q${hx+rx-2} ${f(hy+ry*0.55)} ${f(hx+rx*0.45)} ${f(hy+ry*0.85)} Q${hx} ${f(hy+ry*chin)} ${f(hx-rx*0.45)} ${f(hy+ry*0.85)} Q${hx-rx+2} ${f(hy+ry*0.55)} ${hx-rx} ${hy-10} Z" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+  o+=`<path d="M${f(hx+rx*0.35)} ${f(hy-ry*0.8)} Q${hx+rx} ${f(hy-ry*0.4)} ${f(hx+rx*0.96)} ${f(hy+ry*0.1)} Q${f(hx+rx*0.75)} ${f(hy+ry*0.8)} ${f(hx+rx*0.2)} ${f(hy+ry*0.96)} Q${f(hx+rx*0.7)} ${f(hy+ry*0.3)} ${f(hx+rx*0.35)} ${f(hy-ry*0.8)} Z" fill="${S.shade}" opacity="${real?0.75:0.9}"/>`;
+ }
+ if(animal) o+=animalFace(S,st,hx,hy);
+ if(st.veins) o+=`<ellipse cx="${hx}" cy="${f(hy+ry*0.1)}" rx="${f(rx*0.9)}" ry="${f(ry*0.85)}" fill="#e0452f" opacity="0.16"/>`;
+ if(real&&S.role!=='inter') for(let i=0;i<80;i++){const a=Math.PI*(0.18+rnd(i)*0.64), r=0.62+rnd(i+99)*0.36; o+=`<circle cx="${f(hx+Math.cos(a)*rx*r)}" cy="${f(hy+8+Math.sin(a)*ry*r*0.95)}" r="0.9" fill="#6b5040" opacity="0.5"/>`;}
+ if(!animal) o+=hair(S,st,hx,hy,t,st.stage===9&&mode==='hyst');
+ if(st.shadow) o+=`<path d="M${hx-rx-4} ${hy+6} Q${hx-rx} ${hy-ry-4} ${hx} ${hy-ry-6} Q${hx+rx} ${hy-ry-4} ${hx+rx+4} ${hy+6} Z" fill="#0b0712" opacity="${st.shadow}"/>`;
+ for(const sd of [-1,1]){
+  const ex=hx+sd*S.eyeDx, ey=hy+S.eyeDy;
+  const by=ey-S.browGap-(sd>0?st.raise:0)-(st.open>1?(st.open-1)*10:0), Lb=S.browL, a=st.brow*Lb*0.32;
+  o+=`<path d="M${f(ex-sd*Lb/2)} ${f(by-a)} Q${ex} ${f(by-3-a*0.2)} ${f(ex+sd*Lb/2)} ${f(by+a*0.6)}" fill="none" stroke="${S.browC}" stroke-width="${S.browW}" stroke-linecap="round"/>`;
+ }
+ if(animal&&S.A.mask) st.lidC=S.A.mask;
+ for(const sd of [-1,1]) o+=eye(S,st,hx+sd*S.eyeDx,hy+S.eyeDy,sd,t);
+ st.lidC=null;
+ if(S.kind==='comic') o+=`<path d="M${hx-2} ${hy+6} L${hx-8} ${hy+24} L${hx+2} ${hy+25}" fill="none" stroke="${S.ol}" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round"/>`;
+ else if(S.kind==='chibi') o+=`<ellipse cx="${hx}" cy="${hy+S.noseY}" rx="3" ry="2" fill="#e9a98a"/>`;
+ else if(real) o+=`<path d="M${hx-2} ${hy+2} Q${hx-4} ${hy+16} ${hx-8} ${hy+21} Q${hx} ${hy+26} ${hx+8} ${hy+21}" fill="none" stroke="${S.ol}" stroke-width="1.3" stroke-linecap="round"/><path d="M${hx+3} ${hy+4} Q${hx+6} ${hy+16} ${hx+8} ${hy+20}" stroke="${S.shade}" stroke-width="2" fill="none"/>`;
+ if(real&&st.P>40) o+=`<path d="M${hx-12} ${hy+24} Q${hx-16} ${hy+32} ${hx-14} ${hy+40} M${hx+12} ${hy+24} Q${hx+16} ${hy+32} ${hx+14} ${hy+40}" stroke="${S.shade}" stroke-width="1.2" fill="none" opacity="${f(ramp(st.P,40,80))}"/>`;
+ if(S.kind==='chibi') for(const sd of [-1,1]) o+=`<ellipse cx="${hx+sd*rx*0.58}" cy="${hy+S.mouthY-6}" rx="12" ry="6" fill="#ffb3c1" opacity="${f(0.55+st.blush*0.4)}"/>`;
+ else if((S.kind==='comic'||animal)&&st.blush>0.3) for(const sd of [-1,1]){const cx=hx+sd*rx*0.58, cy=hy+(animal?14:20); o+=`<path d="M${cx-8} ${cy+4} l5 -7 M${cx-2} ${cy+4} l5 -7 M${cx+4} ${cy+4} l5 -7" stroke="#e0705a" stroke-width="2.5" stroke-linecap="round" opacity="${f(st.blush)}"/>`;}
+ else if(real&&st.blush>0) for(const sd of [-1,1]) o+=`<ellipse cx="${hx+sd*rx*0.55}" cy="${hy+18}" rx="11" ry="7" fill="#c8604c" opacity="${f(st.blush*0.28)}"/>`;
+ o+=mouth(S,st,t,hx,hy+S.mouthY);
+ if(st.veins){const x=hx+rx*0.5, y=hy-ry*0.52, k=real?1:1.5;
+  o+=`<path d="M${f(x-6*k)} ${f(y-2*k)} Q${f(x-2*k)} ${f(y-2*k)} ${f(x-2*k)} ${f(y-6*k)} M${f(x+2*k)} ${f(y-6*k)} Q${f(x+2*k)} ${f(y-2*k)} ${f(x+6*k)} ${f(y-2*k)} M${f(x+6*k)} ${f(y+2*k)} Q${f(x+2*k)} ${f(y+2*k)} ${f(x+2*k)} ${f(y+6*k)} M${f(x-2*k)} ${f(y+6*k)} Q${f(x-2*k)} ${f(y+2*k)} ${f(x-6*k)} ${f(y+2*k)}" stroke="#d23a2a" stroke-width="${real?2:3}" fill="none" stroke-linecap="round"/>`;}
+ const tearC=real?'#cfe3ef':'#7cc4ee';
+ if(st.streams) for(const sd of [-1,1]){const ex=hx+sd*S.eyeDx, ey=hy+S.eyeDy, w=Math.sin(t*8+sd)*3;
+  o+=`<path d="M${ex} ${ey+5} Q${f(ex+sd*8+w)} ${f(hy+ry*0.45)} ${f(ex+sd*4)} ${f(hy+ry*0.95)}" stroke="${tearC}" stroke-width="${S.tearW}" fill="none" stroke-linecap="round" opacity="0.9"/>`;
+  const ph=(t*1.6+(sd>0?0.5:0))%1; o+=drop(ex+sd*4,hy+ry*0.95+ph*40,S.sweatS*0.7,tearC,null,0,1-ph);}
+ if(st.tearWell) for(const sd of [-1,1]){const ex=hx+sd*S.eyeDx, ey=hy+S.eyeDy, ph=(t*0.5+(sd>0?0.5:0))%1;
+  o+=drop(ex+sd*S.eyeR*0.6,ey+S.eyeR*0.9+ph*18,S.sweatS*0.55,tearC,real?null:S.ol,1.2,ph<0.8?1:(1-ph)*5);}
+ for(let i=0;i<st.sweat;i++){const [a,b]=SWEAT[i], ph=(t*0.55+i*0.37)%1, s=S.sweatS*(0.85+((i*7)%3)*0.15)*Math.min(1,ph*8);
+  o+=drop(hx+a*rx,hy+b*ry+ph*22,s,S.sweatC,real?null:S.ol,S.kind==='chibi'?1.8:2,(1-ph*0.7)*(real?0.85:1));}
+ return o;
+}
+
+function table(S,st,t){
+ let o=`<rect x="-10" y="282" width="420" height="50" fill="${S.tableTop}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ o+=`<rect x="-10" y="330" width="420" height="40" fill="${S.table}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ const rattle=st.P>=40?Math.sin(t*55)*ramp(st.P,40,80)*1.6:0, jump=st.cupJump?-12:0;
+ if(S.role==='inter'){
+  o+=`<g transform="rotate(4 ${S.hx+70} 306)"><rect x="${S.hx+44}" y="292" width="54" height="34" rx="2" fill="#fbf7ea" stroke="${S.ol}" stroke-width="${S.ow}"/><path d="M${S.hx+50} 302 h40 M${S.hx+50} 309 h34 M${S.hx+50} 316 h38" stroke="#9aa3b2" stroke-width="1.5"/></g>`;
+  const cx=82+rattle, cy=312+jump;
+  o+=`<rect x="${f(cx-12)}" y="${f(cy-26)}" width="24" height="26" rx="3" fill="#3f5f8f" stroke="${S.ol}" stroke-width="${S.ow}"/><path d="M${f(cx+12)} ${f(cy-20)} q9 0 9 8 q0 8 -9 8" fill="none" stroke="${S.ol}" stroke-width="${Math.max(2,S.ow)}"/>`;
+  if(Math.sin(t*2)>0) o+=`<path d="M${f(cx-4)} ${f(cy-32)} q-4 -6 0 -12 M${f(cx+4)} ${f(cy-32)} q-4 -6 0 -12" stroke="#ffffff" stroke-width="2" fill="none" opacity="0.5"/>`;
+ } else {
+  o+=`<g transform="rotate(-6 74 312)"><rect x="40" y="294" width="68" height="34" rx="2" fill="${S.folder}" stroke="${S.ol}" stroke-width="${S.ow}"/><rect x="40" y="290" width="24" height="6" rx="1" fill="${S.folder}" stroke="${S.ol}" stroke-width="${S.ow}"/></g>`;
+  const cx=322+rattle, cy=312+jump;
+  o+=`<path d="M${f(cx-13)} ${f(cy-32)} L${f(cx+13)} ${f(cy-32)} L${f(cx+10)} ${cy} L${f(cx-10)} ${cy} Z" fill="${S.cup}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/>`;
+  o+=`<path d="M${f(cx-12)} ${f(cy-25)} L${f(cx+12)} ${f(cy-25)}" stroke="${S.cupBand}" stroke-width="4"/>`;
+ }
+ return o;
+}
+
+function limb(S,a,e,h){
+ const d=`M${f(a.x)} ${f(a.y)} L${f(e.x)} ${f(e.y)} L${f(h.x)} ${f(h.y)}`;
+ return `<path d="${d}" fill="none" stroke="${S.ol}" stroke-width="${S.armW+S.ow*2}" stroke-linecap="round" stroke-linejoin="round"/><path d="${d}" fill="none" stroke="${S.shirt}" stroke-width="${S.armW}" stroke-linecap="round" stroke-linejoin="round"/>`;
+}
+function handG(S,h,fist,side,point){
+ const r=S.handR;
+ let s='';
+ if(point) s+=`<rect x="${f(h.x-r-16)}" y="${f(h.y-5)}" width="22" height="9" rx="4.5" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ s+=`<ellipse cx="${f(h.x)}" cy="${f(h.y)}" rx="${r}" ry="${f(r*0.88)}" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow}"/>`;
+ if(fist||point) for(let k=0;k<3;k++) s+=`<path d="M${f(h.x-r*0.5+k*r*0.5)} ${f(h.y-r*0.55)} l0 ${f(r*0.45)}" stroke="${S.ol}" stroke-width="${Math.max(1.2,S.ow*0.6)}" stroke-linecap="round"/>`;
+ else s+=`<ellipse cx="${f(h.x-side*r*0.75)}" cy="${f(h.y-r*0.2)}" rx="${f(r*0.38)}" ry="${f(r*0.28)}" fill="${S.skin}" stroke="${S.ol}" stroke-width="${S.ow*0.8}"/>`;
+ if(S.kind==='real') s+=`<path d="M${f(h.x-r*0.4)} ${f(h.y+r*0.5)} Q${f(h.x)} ${f(h.y+r*0.8)} ${f(h.x+r*0.4)} ${f(h.y+r*0.5)}" stroke="${S.shade}" stroke-width="1.5" fill="none"/>`;
+ return s;
+}
+function arms(S,st,t,hx,hy){
+ const w=S.shoulderW, sy=S.shoulderY+16, Lx=hx-w+8, Rx=hx+w-8, ty=306, rx=S.rx, ry=S.ry;
+ const V=(x,y)=>({x,y}); let L,R,Le,Re,Lf=false,Rf=false,Lp=false;
+ switch(st.pose){
+  case 'behindHead': L=V(hx-rx*0.85,hy-ry*0.15);R=V(hx+rx*0.85,hy-ry*0.15);Le=V(hx-rx-48,hy+12);Re=V(hx+rx+48,hy+12);break;
+  case 'tap': L=V(hx-70,ty);R=V(hx+68,ty-Math.abs(Math.sin(t*11))*9);break;
+  case 'crossed': L=V(hx+34,sy+22);R=V(hx-34,sy+28);Le=V(Lx-6,sy+36);Re=V(Rx+6,sy+42);break;
+  case 'clasp': L=V(hx-13+Math.sin(t*4)*2,ty);R=V(hx+13-Math.sin(t*4)*2,ty);break;
+  case 'wipe': L=V(hx-60,ty);R=V(hx+rx*0.3+Math.sin(t*9)*10,hy-ry*0.55);Re=V(Rx+34,sy+30);break;
+  case 'fidget': L=V(hx-50+Math.sin(t*3.3)*14,ty+Math.sin(t*5)*3);R=V(hx+50+Math.sin(t*2.7+1)*14,ty);break;
+  case 'scratch': L=V(hx-62,ty);R=V(hx+rx*0.55+Math.cos(t*10)*5,hy-ry*0.82+Math.sin(t*10)*5);Re=V(Rx+44,hy+34);break;
+  case 'shaky': {const j=()=>(Math.random()-0.5)*3; L=V(hx-46+j(),ty+j());R=V(hx+46+j(),ty+j());break;}
+  case 'raise': L=V(hx-66,ty);R=V(lerp(hx+72,hx+98,st.k),lerp(ty,168,Math.sin(st.k*Math.PI/2)));Re=V(Rx+40,lerp(sy+40,sy+6,st.k));Rf=true;break;
+  case 'slam': L=V(hx-66,ty);R=V(hx+72,ty);Rf=true;break;
+  case 'face': L=V(hx-rx*0.62,hy+ry*0.45);R=V(hx+rx*0.62,hy+ry*0.45);Le=V(Lx-12,sy+48);Re=V(Rx+12,sy+48);break;
+  case 'hair': {const j=Math.sin(t*22)*4; L=V(hx-rx*0.8+j,hy-ry*0.7);R=V(hx+rx*0.8-j,hy-ry*0.7);Le=V(Lx-42,hy+22);Re=V(Rx+42,hy+22);break;}
+  case 'spread': L=V(hx-118,ty+2);R=V(hx+118,ty+2);Le=V(Lx-30,sy+30);Re=V(Rx+30,sy+30);break;
+  case 'fists': {const d=st.slamDown?6:0; L=V(hx-64,ty+d);R=V(hx+64,ty+d);Lf=Rf=true;Le=V(Lx-24,sy+28);Re=V(Rx+24,sy+28);break;}
+  case 'notes': L=V(hx-52,ty);R=V(hx+64+Math.sin(t*7)*8,ty-2+Math.abs(Math.sin(t*14))*2);break;
+  case 'lean': L=V(hx-76,ty-2);R=V(hx+76,ty-2);Le=V(Lx-30,sy+24);Re=V(Rx+30,sy+24);break;
+  case 'point': L=V(hx-128+Math.sin(t*6)*4,hy+70);Le=V(Lx-30,sy+6);R=V(hx+60,ty);Lp=true;break;
+  case 'cheer': L=V(hx-58,ty);{const b=Math.abs(Math.sin(t*6))*10; R=V(hx+rx+30,hy-52-b);Re=V(Rx+44,sy-14);}Rf=true;break;
+  case 'facepalm': L=V(hx-58,ty);R=V(hx+rx*0.1,hy-ry*0.12);Re=V(Rx+14,sy+28);break;
+  default: L=V(hx-60,ty);R=V(hx+60,ty);
+ }
+ Le=Le||V(Lx-22,sy+40); Re=Re||V(Rx+22,sy+40);
+ let pen='';
+ if(st.pose==='notes') pen=`<line x1="${f(R.x-4)}" y1="${f(R.y-6)}" x2="${f(R.x-14)}" y2="${f(R.y+8)}" stroke="#20242a" stroke-width="3" stroke-linecap="round"/>`;
+ return limb(S,V(Lx,sy),Le,L)+handG(S,L,Lf,-1,Lp)+limb(S,V(Rx,sy),Re,R)+handG(S,R,Rf,1,false)+pen;
+}
+
+function effects(S,st,t,mirror){
+ let o='';
+ const lx=200+Math.sin(t*1.3)*2+Math.sin(t*9)*16*st.lampSwing;
+ const fl=st.flicker?((Math.sin(t*37)>0.6||Math.random()<0.08)?0.25:1):1;
+ o+=`<polygon points="${f(lx-18)},46 ${f(lx+18)},46 372,300 28,300" fill="${S.cone}" opacity="${f(S.coneO*fl)}"/>`;
+ o+=`<line x1="200" y1="0" x2="${f(lx)}" y2="30" stroke="${S.frame}" stroke-width="2"/>`;
+ o+=`<path d="M${f(lx-24)} 48 L${f(lx-9)} 28 L${f(lx+9)} 28 L${f(lx+24)} 48 Z" fill="${S.lampShade}" stroke="${S.ol}" stroke-width="${S.ow}" stroke-linejoin="round"/>`;
+ o+=`<ellipse cx="${f(lx)}" cy="49" rx="10" ry="4" fill="#fff6c8" opacity="${fl}"/>`;
+ if(S.kind==='real') o+=`<rect x="-40" y="-40" width="480" height="440" fill="none" stroke="#000" stroke-width="${f(80+70*ramp(st.P,40,100))}" opacity="0.4"/>`;
+ if(st.sparkle) for(let i=0;i<6;i++){const a=t*1.5+i*1.05, x=200+Math.cos(a)*120, y=140+Math.sin(a)*70, s=6+3*Math.sin(t*6+i);
+  o+=`<path d="M${f(x)} ${f(y-s)} L${f(x+s*0.3)} ${f(y-s*0.3)} L${f(x+s)} ${f(y)} L${f(x+s*0.3)} ${f(y+s*0.3)} L${f(x)} ${f(y+s)} L${f(x-s*0.3)} ${f(y+s*0.3)} L${f(x-s)} ${f(y)} L${f(x-s*0.3)} ${f(y-s*0.3)} Z" fill="#ffd34d" stroke="${S.ol}" stroke-width="1"/>`;}
+ if(st.fx){
+  const F=st.fx, k=S.kind==='real'?0.8:1, j=F.jit?6:0, jx=(Math.random()-0.5)*j, jy=(Math.random()-0.5)*j, x=mirror?400-F.x:F.x, rot=mirror?-F.rot:F.rot;
+  o+=`<text x="${f(x+jx)}" y="${f(F.y+jy)}" font-size="${f(F.size*k)}" font-weight="${S.font}" text-anchor="middle" transform="rotate(${rot} ${f(x)} ${f(F.y)})" fill="${S.fxFill}" stroke="${S.fxStroke}" stroke-width="${S.fxSW}" stroke-linejoin="round" paint-order="stroke" font-family="'Noto Sans TC','PingFang TC','Microsoft JhengHei',sans-serif" opacity="${S.kind==='real'?0.85:1}">${F.text}</text>`;
+ }
+ return o;
+}
+
+/* 把一個角色畫進 svg。role: 'suspect' | 'inter'（審問官面向右邊的嫌犯，所以左右翻轉） */
+function render(svg,S,st,t,mode){
+ const hx=S.hx, hy=S.hy+st.headDY, mirror=S.role==='inter';
+ const sh=reduce?st.shake*0.3:st.shake, sx=sh?(Math.random()-0.5)*2*sh:0, sy=sh?(Math.random()-0.5)*2*sh:0;
+ const tr=reduce?st.trem*0.3:st.trem, tx=Math.sin(t*47)*tr, ty=Math.cos(t*39)*tr*0.7;
+ const armSvg=arms(S,st,t,hx,hy);
+ let o=`<g transform="translate(${f(sx)} ${f(sy)})">`+room(S,st,t);
+ o+=mirror?`<g transform="translate(400 0) scale(-1 1)">`:'<g>';
+ o+=body(S,st,hx);
+ if(st.pose==='behindHead') o+=armSvg;
+ o+=`<g transform="translate(${f(tx)} ${f(ty)}) rotate(${f(st.tilt)} ${hx} ${hy+S.ry}) translate(${hx} ${hy}) scale(${st.scale}) translate(${-hx} ${-hy})">`+head(S,st,t,hx,hy,mode)+`</g>`;
+ o+=table(S,st,t);
+ if(st.pose!=='behindHead') o+=armSvg;
+ o+='</g>'+effects(S,st,t,mirror)+'</g>';
+ if(st.flash) o+=`<rect width="400" height="360" fill="#ff2a1a" opacity="${f(clamp(st.flash,0,0.4))}"/>`;
+ svg.innerHTML=o;
+}
+
+const SUS_STAGES=[
+ {name:'囂張挑釁',desc:'翹腳、雙手抱頭靠椅背、冷笑'},{name:'不耐煩',desc:'手指敲桌、偷看時鐘、嘆氣'},{name:'防備',desc:'雙手抱胸、眼神迴避'},
+ {name:'不安',desc:'開始冒汗、吞口水'},{name:'緊張',desc:'擦汗、桌子跟著抖、說話結巴'},{name:'慌亂',desc:'頻繁眨眼、眼神亂飄'},
+ {name:'動搖',desc:'抓頭、聲音變小'},{name:'崩潰邊緣',desc:'手發抖、眼眶泛紅'},{name:'情緒失控',desc:'舉拳拍桌大吼'},{name:'破防',desc:'撐不住了'}
+];
+const BREAK_NAMES={cry:'痛哭崩潰',hyst:'歇斯底里',mad:'陰沉癲狂',roar:'崩潰咆哮'};
+
+root.Render={render,buildS,suspectState,interState,interStageIdx,INTER_STAGES,SUS_STAGES,BREAK_NAMES,LOOKS,ANIMALS};
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+/* 瘋狂審訊室・背景音樂：全部在瀏覽器即時合成，沒有任何音樂檔案，不會有版權問題。
+   三種曲風會隨嫌犯壓力（緊張度 0～1）一層一層加重，破防、勝負時有專屬收尾音效。 */
+(function(root){
+const STYLES={
+ oppress:{name:'壓抑對峙'},   // 低頻嗡鳴、呼吸般的脈動、時鐘滴答、偶爾的金屬刮擦
+ advance:{name:'步步進逼'},   // 不和諧的悶音鋼琴、斷奏弦樂、越來越快的低音脈動
+ nordic:{name:'北歐冷調'}     // 大提琴長音、遠處心跳、冰冷的合成質感
+};
+const N=m=>440*Math.pow(2,(m-69)/12); // 音名編號換成頻率
+let ac=null, out=null, duck=null, verb=null, running=false, style='oppress', tension=0, timer=null, layers={}, next={}, vol=0.5;
+
+function makeImpulse(sec){
+ const len=Math.floor(ac.sampleRate*sec), b=ac.createBuffer(2,len,ac.sampleRate);
+ for(let c=0;c<2;c++){const d=b.getChannelData(c);for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/len,2.6);}
+ return b;
+}
+function init(ctx){
+ if(ac) return; ac=ctx;
+ out=ac.createGain(); out.gain.value=0;
+ duck=ac.createGain(); duck.gain.value=1;
+ const comp=ac.createDynamicsCompressor(); comp.threshold.value=-18; comp.ratio.value=3;
+ verb=ac.createConvolver(); verb.buffer=makeImpulse(3.2);
+ const wet=ac.createGain(); wet.gain.value=0.45;
+ verb.connect(wet); wet.connect(out);
+ out.connect(duck); duck.connect(comp); comp.connect(ac.destination);
+}
+function bus(gain,toVerb){const g=ac.createGain();g.gain.value=gain;g.connect(out);if(toVerb){const s=ac.createGain();s.gain.value=toVerb;g.connect(s);s.connect(verb);}return g;}
+
+/* ---------- 持續音層 ---------- */
+function drone(){
+ const g=bus(0,0.3), f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=180; f.Q.value=6; f.connect(g);
+ const oscs=[[N(33),'sawtooth',0],[N(33),'sawtooth',7],[N(40),'triangle',-5],[N(21),'sine',0]].map(([fr,ty,dt])=>{
+  const o=ac.createOscillator();o.type=ty;o.frequency.value=fr;o.detune.value=dt;const og=ac.createGain();og.gain.value=ty==='sine'?0.5:0.18;o.connect(og);og.connect(f);o.start();return o;});
+ const lfo=ac.createOscillator(), lg=ac.createGain(); lfo.frequency.value=0.13; lg.gain.value=0.35; lfo.connect(lg); const breath=ac.createGain(); breath.gain.value=0.65; lg.connect(breath.gain);
+ g.disconnect(); f.disconnect(); f.connect(breath); breath.connect(g); lfo.start();
+ const s=ac.createGain(); s.gain.value=0.3; g.connect(s); s.connect(verb); g.connect(out);
+ return {g,f,stop(){oscs.forEach(o=>o.stop());lfo.stop();}};
+}
+function cello(){
+ const g=bus(0,0.5), f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=700; f.Q.value=1; f.connect(g);
+ const o=ac.createOscillator(); o.type='sawtooth'; o.frequency.value=N(38);
+ const o2=ac.createOscillator(); o2.type='sawtooth'; o2.frequency.value=N(38); o2.detune.value=8;
+ const vib=ac.createOscillator(), vg=ac.createGain(); vib.frequency.value=5; vg.gain.value=4; vib.connect(vg); vg.connect(o.frequency); vg.connect(o2.frequency);
+ const sw=ac.createGain(); sw.gain.value=0.25; o.connect(sw); o2.connect(sw); sw.connect(f);
+ o.start(); o2.start(); vib.start();
+ return {g,f,osc:[o,o2],sw,stop(){o.stop();o2.stop();vib.stop();}};
+}
+function texture(){
+ const len=ac.sampleRate*2, b=ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0);
+ for(let i=0;i<len;i++) d[i]=Math.random()*2-1;
+ const src=ac.createBufferSource(); src.buffer=b; src.loop=true;
+ const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=3200; f.Q.value=8;
+ const g=bus(0,0.6); src.connect(f); f.connect(g); src.start();
+ return {g,f,stop(){src.stop();}};
+}
+
+/* ---------- 事件音 ---------- */
+function env(g,t,a,peak,d){g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(peak,t+a);g.gain.exponentialRampToValueAtTime(0.0001,t+a+d);}
+function tick(t,hi,amp){
+ const b=ac.createBuffer(1,Math.floor(ac.sampleRate*0.03),ac.sampleRate), d=b.getChannelData(0);
+ for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*Math.pow(1-i/d.length,4);
+ const s=ac.createBufferSource(); s.buffer=b; const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=hi?3400:2400; f.Q.value=12;
+ const g=bus(amp,0.15); s.connect(f); f.connect(g); s.start(t);
+}
+function piano(t,midi,amp){
+ const g=bus(0,0.55), f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.value=1400; f.connect(g);
+ [[1,'triangle',1],[2,'sine',0.35],[3.01,'sine',0.12]].forEach(([m,ty,a])=>{const o=ac.createOscillator();o.type=ty;o.frequency.value=N(midi)*m;const og=ac.createGain();og.gain.value=a;o.connect(og);og.connect(f);o.start(t);o.stop(t+3);});
+ env(g,t,0.008,amp,2.6);
+}
+function staccato(t,midi,amp){
+ const g=bus(0,0.2), f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.value=N(midi)*3; f.Q.value=1.2; f.connect(g);
+ [0,9].forEach(dt=>{const o=ac.createOscillator();o.type='sawtooth';o.frequency.value=N(midi);o.detune.value=dt;o.connect(f);o.start(t);o.stop(t+0.2);});
+ env(g,t,0.01,amp,0.14);
+}
+function screech(t,amp){
+ const o=ac.createOscillator(); o.type='sine'; const f0=2000+Math.random()*2500;
+ o.frequency.setValueAtTime(f0,t); o.frequency.exponentialRampToValueAtTime(f0*(Math.random()<0.5?0.7:1.3),t+1.6);
+ const fm=ac.createOscillator(), fg=ac.createGain(); fm.frequency.value=37; fg.gain.value=60; fm.connect(fg); fg.connect(o.frequency);
+ const g=bus(0,0.9); o.connect(g); env(g,t,0.4,amp,1.4); o.start(t); o.stop(t+2); fm.start(t); fm.stop(t+2);
+}
+function thump(t,amp){
+ [0,0.16].forEach((dt,i)=>{const o=ac.createOscillator();o.type='sine';o.frequency.setValueAtTime(i?50:58,t+dt);o.frequency.exponentialRampToValueAtTime(32,t+dt+0.18);
+  const g=bus(0,0.25);o.connect(g);env(g,t+dt,0.015,amp*(i?0.7:1),0.2);o.start(t+dt);o.stop(t+dt+0.3);});
+}
+function pulse(t,amp){
+ const o=ac.createOscillator(); o.type='sawtooth'; o.frequency.value=N(33);
+ const f=ac.createBiquadFilter(); f.type='lowpass'; f.frequency.setValueAtTime(900,t); f.frequency.exponentialRampToValueAtTime(120,t+0.25);
+ const g=bus(0,0.1); o.connect(f); f.connect(g); env(g,t,0.01,amp,0.28); o.start(t); o.stop(t+0.35);
+}
+
+/* ---------- 排程：每 0.1 秒往前排未來 0.3 秒的音 ---------- */
+const DISSONANT=[57,58,63,64,65,51,52];  // A、降B、降E、E、F 等不和諧音
+const CELLO_LINE=[38,45,41,40,38,36];
+let celloIdx=0, tickHi=false;
+function schedule(){
+ if(!running) return;
+ const now=ac.currentTime, ahead=now+0.3, k=tension;
+ const smooth=(p,v,tc)=>p.setTargetAtTime(v,now,tc||1.5);
+ const w={oppress:style==='oppress'?1:0,advance:style==='advance'?1:0,nordic:style==='nordic'?1:0};
+ // 進逼層：任何曲風在高壓時都會加進來
+ const adv=Math.max(w.advance, k>0.55?(k-0.55)/0.45*0.8:0);
+ if(layers.drone){ smooth(layers.drone.g.gain,(w.oppress*0.55+w.advance*0.4+w.nordic*0.25)*(0.6+k*0.6)); smooth(layers.drone.f.frequency,140+k*700); }
+ if(layers.cello){ smooth(layers.cello.g.gain,w.nordic*(0.22+k*0.25)); }
+ if(layers.tex){ smooth(layers.tex.g.gain,(w.nordic*0.035+w.oppress*0.02)*(0.5+k)); smooth(layers.tex.f.frequency,2600+k*3000); }
+ // 時鐘：越緊張越快
+ if(w.oppress||k<0.5){ const iv=1-0.5*k; next.tick=next.tick||now; while(next.tick<ahead){ if(next.tick>=now) tick(next.tick,tickHi=!tickHi,0.12*(w.oppress?1:0.5)); next.tick+=iv; } }
+ // 金屬刮擦：偶爾出現，壓力越高越頻繁
+ next.screech=next.screech||now+6; if(next.screech<ahead){ if(w.oppress||w.nordic) screech(next.screech,0.03+k*0.04); next.screech+=Math.max(4,14-k*10)+Math.random()*6; }
+ // 悶音鋼琴
+ next.piano=next.piano||now+2; if(next.piano<ahead){ if(adv>0.05) piano(next.piano,DISSONANT[Math.floor(Math.random()*DISSONANT.length)],0.09*adv+0.03*k); next.piano+=Math.max(0.7,3.2-k*2.4)*(0.7+Math.random()*0.6); }
+ // 斷奏弦樂與低音脈動：拍子隨壓力加快
+ const bpm=70+k*70, beat=60/bpm;
+ next.beat=next.beat||now+1; let i=next.beatN||0;
+ while(next.beat<ahead){ if(next.beat>=now){
+   if(adv>0.2&&k>0.35){ staccato(next.beat,i%4===3?46:45,0.06*adv); if(i%2===0) staccato(next.beat+beat/2,45,0.035*adv); }
+   if(adv>0.1&&i%2===0) pulse(next.beat,0.12*adv);
+   if(w.nordic&&i%2===0) thump(next.beat,0.18+k*0.2);
+  } next.beat+=beat; i++; }
+ next.beatN=i;
+ // 大提琴旋律慢慢換音
+ if(layers.cello&&w.nordic){ next.cello=next.cello||now; if(next.cello<ahead){ celloIdx=(celloIdx+1)%CELLO_LINE.length; const fr=N(CELLO_LINE[celloIdx]);
+   layers.cello.osc.forEach(o=>o.frequency.setTargetAtTime(fr,next.cello,0.4)); layers.cello.sw.gain.setTargetAtTime(0.1,next.cello,0.3); layers.cello.sw.gain.setTargetAtTime(0.3,next.cello+0.6,1.2); next.cello+=6-k*2; } }
+}
+
+function start(ctx,st){
+ init(ctx); if(running){setStyle(st);return;}
+ running=true; style=st||style; next={}; celloIdx=0;
+ layers={drone:drone(),cello:cello(),tex:texture()};
+ out.gain.cancelScheduledValues(ac.currentTime); out.gain.setTargetAtTime(vol,ac.currentTime,1.2);
+ clearInterval(timer); timer=setInterval(schedule,100); schedule();
+}
+function stop(fade){
+ if(!running) return; running=false; clearInterval(timer);
+ const t=ac.currentTime, L=layers; out.gain.setTargetAtTime(0,t,(fade||1.5)/3);
+ setTimeout(()=>{for(const k in L) try{L[k].stop();}catch(e){}},(fade||1.5)*1000+300);
+ layers={};
+}
+function setStyle(s){ if(STYLES[s]) style=s; }
+function setTension(k){ tension=Math.max(0,Math.min(1,k)); }
+function setVolume(v){ vol=v; if(running&&out) out.gain.setTargetAtTime(v,ac.currentTime,0.3); }
+function setDuck(on){ if(duck) duck.gain.setTargetAtTime(on?0.45:1,ac.currentTime,0.25); }
+
+/* 收尾音效：kind = 'break'（嫌犯破防）、'win'、'lose' */
+function sting(ctx,kind){
+ init(ctx); const t=ac.currentTime+0.05;
+ const g0=ac.createGain(); g0.gain.value=vol*1.2; g0.connect(duck);
+ const s=ac.createGain(); s.gain.value=0.6; g0.connect(s); s.connect(verb);
+ const note=(m,ty,at,dur,amp,dest)=>{const o=ac.createOscillator();o.type=ty;o.frequency.value=N(m);const g=ac.createGain();o.connect(g);g.connect(dest||g0);env(g,at,0.02,amp,dur);o.start(at);o.stop(at+dur+0.1);};
+ if(kind==='break'){
+  const len=ac.sampleRate*2.2, b=ac.createBuffer(1,len,ac.sampleRate), d=b.getChannelData(0); for(let i=0;i<len;i++) d[i]=(Math.random()*2-1)*(i/len);
+  const n=ac.createBufferSource(); n.buffer=b; const f=ac.createBiquadFilter(); f.type='bandpass'; f.frequency.setValueAtTime(300,t); f.frequency.exponentialRampToValueAtTime(5000,t+2.1); f.Q.value=3;
+  const ng=ac.createGain(); ng.gain.value=0.35; n.connect(f); f.connect(ng); ng.connect(g0); n.start(t);
+  const o=ac.createOscillator(); o.type='sine'; o.frequency.setValueAtTime(70,t+2.2); o.frequency.exponentialRampToValueAtTime(28,t+3.4);
+  const og=ac.createGain(); o.connect(og); og.connect(g0); env(og,t+2.2,0.01,0.9,1.6); o.start(t+2.2); o.stop(t+4);
+  [45,46,51,57,58].forEach(m=>note(m,'sawtooth',t+2.2,2.4,0.05));
+ } else if(kind==='win'){
+  [45,52,57,61,64].forEach((m,i)=>note(m,'triangle',t+i*0.12,2.8,0.08));
+  note(33,'sine',t,3,0.4);
+ } else {
+  [[57,0],[56,0.5],[55,1],[51,1.6]].forEach(([m,dt])=>note(m,'triangle',t+dt,1.6,0.08));
+  note(27,'sine',t+1.6,3,0.35);
+ }
+}
+
+root.Music={STYLES,start,stop,setStyle,setTension,setVolume,setDuck,sting,isRunning:()=>running};
+})(typeof window!=='undefined'?window:globalThis);
+
+</script>
+<script>
+/* 瘋狂審訊室・介面與流程：選單、單人（對電腦）、連線對戰、語音、麥克風 */
+(function(){
+const $=id=>document.getElementById(id);
+const E=window.Engine, R=window.Render;
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const ramp=(p,a,b)=>clamp((p-a)/(b-a),0,1);
+const SC=['#5e9c7a','#72a46b','#8ea75e','#aaa452','#c79b45','#d68a3c','#dc753a','#de6238','#d94b3c','#c2364c'];
+const IC=['#6f9fd0','#7fa8c8','#8fb07a','#c7a045','#d6823c','#d95f38','#c2364c','#e8a93a','#7a7f8c'];
+const ROLE_NAME={inter:'審問官',suspect:'嫌犯'};
+
+/* ---------- 存檔（只存在這台裝置） ---------- */
+const store={get(k,d){try{const v=localStorage.getItem('interrogation.'+k);return v?JSON.parse(v):d;}catch(e){return d;}},
+ set(k,v){try{localStorage.setItem('interrogation.'+k,JSON.stringify(v));}catch(e){}}};
+const cfg=Object.assign({mode:'solo',role:'inter',caseId:'c1',limit:20,looks:{inter:'dog',suspect:'comic'}},store.get('cfg',{}));
+cfg.mode='solo';
+const music=Object.assign({on:true,style:'auto',vol:50},store.get('music',{}));
+const saveCfg=()=>store.set('cfg',{role:cfg.role,caseId:cfg.caseId,limit:cfg.limit,looks:cfg.looks});
+
+function toast(t){const el=$('toast');el.textContent=t;el.hidden=false;clearTimeout(toast.h);toast.h=setTimeout(()=>el.hidden=true,3200);}
+function show(id){for(const s of ['scrHome','scrSetup','scrLobby','scrGame']) $(s).hidden=s!==id; window.scrollTo(0,0);}
+
+/* ---------- 語音 ---------- */
+const hasTTS='speechSynthesis' in window;
+let voiceOn=false, voices=[];
+const VOICE={0:{r:0.95,p:0.85,v:1},1:{r:0.88,p:0.8,v:0.9},2:{r:1,p:0.9,v:0.9},3:{r:1.05,p:1,v:0.85},4:{r:1.15,p:1.05,v:0.9,stut:0.35},5:{r:1.35,p:1.12,v:1,stut:0.5},
+ 6:{r:0.8,p:0.95,v:0.55},7:{r:0.72,p:1.15,v:0.65,wob:0.18},8:{r:1.25,p:1.25,v:1},cry:{r:0.72,p:1.35,v:0.85,wob:0.25,sob:true},hyst:{r:1.5,p:1.7,v:1,wob:0.2},mad:{r:0.68,p:0.55,v:0.9},roar:{r:1.2,p:0.7,v:1}};
+const IVOICE=[{r:1,p:0.9,v:0.9},{r:1,p:0.85,v:0.95},{r:0.9,p:0.8,v:0.95},{r:1.1,p:0.9,v:0.9},{r:1.15,p:0.95,v:1},{r:1.25,p:1,v:1},{r:1.3,p:1.05,v:1},{r:1.1,p:1.1,v:1},{r:0.85,p:0.8,v:0.7}];
+function loadVoices(){
+ if(!hasTTS) return;
+ voices=speechSynthesis.getVoices().filter(v=>/^(zh|cmn|yue)/i.test(v.lang));
+ const rank=v=>/TW|Hant/i.test(v.lang)?0:/HK/i.test(v.lang)?2:1;
+ voices.sort((a,b)=>rank(a)-rank(b));
+ for(const [id,pref] of [['voiceSus',0],['voiceInter',1]]){
+  const sel=$(id), keep=sel.value; sel.innerHTML='';
+  voices.forEach(v=>{const o=document.createElement('option');o.value=v.name;o.textContent=(id==='voiceSus'?'嫌犯：':'審問官：')+v.name.replace(/Microsoft |Google /,'')+'（'+(/TW/i.test(v.lang)?'台灣':/HK/i.test(v.lang)?'香港':'中國')+'）';sel.appendChild(o);});
+  if(keep&&voices.some(v=>v.name===keep)) sel.value=keep; else if(voices[pref]) sel.value=voices[pref].name;
+  sel.hidden=!voices.length;
+ }
+ if(voiceOn&&!voices.length) $('voiceNote').textContent='這個裝置沒有中文語音，請改用 Chrome 或 Edge 瀏覽器開啟。';
+}
+if(hasTTS){loadVoices(); speechSynthesis.addEventListener&&speechSynthesis.addEventListener('voiceschanged',loadVoices);}
+function prep(text,c){let s=text.replace(/……+/g,'，').replace(/——/g,'，').replace(/～/g,'');
+ if(c.stut) s=s.replace(/[一-龥]{2,}/g,w=>Math.random()<c.stut?w[0]+'，'+w:w);
+ if(c.sob) s=s.replace(/，/g,'，嗚，'); return s;}
+let speakSeq=0;
+function speakTTS(text,who,c,done){
+ const chunks=(prep(text,c).match(/[^，。！？、,]+[，。！？、,]*/g)||[]).filter(x=>x.replace(/[，。！？、,\s]/g,'').length);
+ if(!chunks.length){done();return;}
+ const v=voices.find(x=>x.name===$(who==='inter'?'voiceInter':'voiceSus').value)||voices[0];
+ let left=chunks.length; const id=++speakSeq;
+ chunks.forEach(ch=>{const u=new SpeechSynthesisUtterance(ch); if(v){u.voice=v;u.lang=v.lang;} else u.lang='zh-TW';
+  const w=c.wob?(Math.random()-0.5)*2*c.wob:0; u.rate=clamp(c.r*(1+w*0.3),0.5,2); u.pitch=clamp(c.p+w,0,2); u.volume=c.v;
+  u.onend=u.onerror=()=>{if(--left<=0&&id===speakSeq) done(); else if(left<=0) done();};
+  speechSynthesis.speak(u);});
+}
+function toggleVoice(on){
+ voiceOn=on; $('voiceBtn').setAttribute('aria-pressed',on); $('voiceBtn').textContent=on?'關閉語音與音效':'開啟語音與音效';
+ if(on){audio();loadVoices();if(!hasTTS)$('voiceNote').textContent='這個瀏覽器不支援語音朗讀，音效仍可播放。';}
+ else if(hasTTS) speechSynthesis.cancel();
+}
+$('voiceBtn').onclick=()=>toggleVoice(!voiceOn);
+
+/* ---------- 背景音樂 ---------- */
+function musicStyleFor(){
+ if(music.style!=='auto') return music.style;
+ const t=G?E.byId(G.st.caseId).suspect.type:'cry';
+ return t==='mad'?'nordic':t==='roar'?'advance':'oppress';
+}
+function startMusic(){ if(!window.Music||!music.on||!G) return; const a=audio(); if(!a) return; Music.setVolume(music.vol/100); Music.start(a,musicStyleFor()); }
+function stopMusic(f){ if(window.Music) Music.stop(f); }
+function renderMusicUI(){
+ $('musicBtn').setAttribute('aria-pressed',music.on); $('musicBtn').textContent=music.on?'關閉背景音樂':'開啟背景音樂';
+ $('musicStyle').value=music.style; $('musicVol').value=music.vol;
+}
+$('musicBtn').onclick=()=>{ music.on=!music.on; store.set('music',music); renderMusicUI(); if(music.on&&G&&!G.st.end) startMusic(); else stopMusic(1); };
+$('musicStyle').onchange=()=>{ music.style=$('musicStyle').value; store.set('music',music); if(window.Music) Music.setStyle(musicStyleFor()); };
+$('musicVol').oninput=()=>{ music.vol=+$('musicVol').value; store.set('music',music); if(window.Music) Music.setVolume(music.vol/100); };
+renderMusicUI();
+
+/* ---------- 音效（即時合成） ---------- */
+let ac=null;
+function audio(){if(!ac){const C=window.AudioContext||window.webkitAudioContext;if(C)ac=new C();}if(ac&&ac.state==='suspended')ac.resume();return ac;}
+function thud(){const a=ac;if(!a||!voiceOn)return;const t0=a.currentTime;const o=a.createOscillator(),g=a.createGain();o.type='sine';
+ o.frequency.setValueAtTime(120,t0);o.frequency.exponentialRampToValueAtTime(38,t0+0.25);g.gain.setValueAtTime(0.9,t0);g.gain.exponentialRampToValueAtTime(0.001,t0+0.35);
+ o.connect(g);g.connect(a.destination);o.start(t0);o.stop(t0+0.4);
+ const b=a.createBuffer(1,Math.floor(a.sampleRate*0.15),a.sampleRate),d=b.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=(Math.random()*2-1)*(1-i/d.length);
+ const n=a.createBufferSource(),ng=a.createGain();n.buffer=b;ng.gain.value=0.35;n.connect(ng);ng.connect(a.destination);n.start(t0);}
+function beat(k){const a=ac;if(!a||!voiceOn)return;const t0=a.currentTime;
+ [0,0.13].forEach((dt,i)=>{const o=a.createOscillator(),g=a.createGain();o.type='sine';o.frequency.value=i?48:56;
+  g.gain.setValueAtTime(0.0001,t0+dt);g.gain.exponentialRampToValueAtTime(0.3*k*(i?0.7:1),t0+dt+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+dt+0.16);
+  o.connect(g);g.connect(a.destination);o.start(t0+dt);o.stop(t0+dt+0.2);});}
+
+/* ---------- 遊戲狀態 ---------- */
+let G=null;           // 目前這一局
+const talking={inter:false,suspect:false};
+const bubbles={inter:{text:'……',t0:0,shown:''},suspect:{text:'……',t0:0,shown:''}};
+let disp={P:5,mood:10};
+
+function newSession(st,myRole,online,looks){
+ G={st,myRole,online,looks:looks||cfg.looks,pendingQ:null,busy:false,deadline:0,S:{inter:R.buildS((looks||cfg.looks).inter,'inter'),suspect:R.buildS((looks||cfg.looks).suspect,'suspect')}};
+ disp={P:st.P,mood:st.mood};
+ bubbles.inter={text:'……',t0:0,shown:''}; bubbles.suspect={text:'……',t0:0,shown:''};
+ $('log').innerHTML='';
+ renderGameStatic(); renderSide(); setInput(false,'準備中');
+ $('resultBox').hidden=true; show('scrGame');
+}
+const C=()=>E.byId(G.st.caseId);
+function interName(){const l=G.looks.inter;return (R.ANIMALS[l]?R.ANIMALS[l].name:'')+'警官';}
+
+function say(who,text){
+ return new Promise(res=>{
+  bubbles[who]={text:text||'……',t0:performance.now()/1000,shown:''};
+  talking[who]=true; window.Music&&Music.setDuck(true);
+  let finished=false; const done=()=>{if(finished)return;finished=true;talking[who]=false;if(!talking.inter&&!talking.suspect&&window.Music)Music.setDuck(false);res();};
+  const silent=!text||/^[…\s.。]*$/.test(text);
+  if(!voiceOn||!hasTTS||silent||!voices.length){setTimeout(done,Math.min(3200,600+(text||'').length*70));return;}
+  let c;
+  if(who==='suspect') c=G.st.end==='broke'?VOICE[G.st.breakMode]:VOICE[Math.min(8,Math.floor(G.st.P/10))];
+  else c=IVOICE[R.interStageIdx(G.st.mood,interFlag())];
+  speakTTS(text,who,c||VOICE[0],done);
+  setTimeout(done,3000+text.length*380);
+ });
+}
+const wait=ms=>new Promise(r=>setTimeout(r,ms));
+
+function interFlag(){
+ if(!G) return null;
+ if(G.st.end==='broke') return 'win';
+ if(G.st.end==='held') return 'lose';
+ return G.st.P>=60?'smug':null;
+}
+
+/* ---------- 輸入列 ---------- */
+function setInput(on,text){
+ $('askInput').disabled=$('sendBtn').disabled=$('micBtn').disabled=!on;
+ $('turnText').textContent=text||'';
+ if(on){ $('askInput').placeholder=G.myRole==='inter'?'輸入你要問的話，或按麥克風說話':'輸入你的回答，或按麥克風說話'; if(window.matchMedia('(pointer:fine)').matches) $('askInput').focus(); }
+ document.querySelectorAll('#evid button').forEach(b=>b.disabled=!on||G.myRole!=='inter'||b.dataset.used==='1');
+}
+$('askForm').addEventListener('submit',e=>{e.preventDefault();const v=$('askInput').value.trim();if(!v)return;$('askInput').value='';submit(v,null);});
+
+async function submit(text,evidId){
+ if(!G||G.busy||G.st.end) return;
+ G.busy=true; setInput(false,'');
+ if(G.myRole==='inter'){
+  const q=E.parseQuestion(G.st,text,evidId);
+  if(G.online&&sock){ sock.emit('ask',{text,evidId}); G.busy=false; return; }
+  await say('inter',q.text);
+  const res=E.resolve(G.st,q,null);
+  await applyTurn(q,res,null);
+ } else {
+  const q=G.pendingQ; if(!q){G.busy=false;return;}
+  if(G.online&&sock){ sock.emit('answer',{text}); G.busy=false; return; }
+  G.pendingQ=null;
+  const res=E.resolve(G.st,q,text);
+  await applyTurn(q,res,text);
+ }
+ G.busy=false;
+}
+
+async function applyTurn(q,res,humanAnswer){
+ logLine('q',ROLE_NAME.inter+'：'+q.text,res.gain);
+ const suspectSays=res.confession&&humanAnswer==null?res.confession:res.reply;
+ renderSide();
+ await say('suspect',suspectSays);
+ logLine('a',C().suspect.name+'：'+suspectSays);
+ res.notes.forEach(n=>logLine('sys',n));
+ res.unlocked.forEach(id=>{const e=C().evidence.find(x=>x.id===id);logLine('sys','新證物：「'+e.name+'」');});
+ if(G.myRole==='suspect'&&!G.online&&res.interLine){ await say('inter',res.interLine); }
+ renderSide();
+ if(G.st.end){ await finish(res); return; }
+ nextStep();
+}
+
+function nextStep(){
+ if(!G||G.st.end) return;
+ if(G.online){ setInput(false,'等待對手…'); return; }
+ if(G.myRole==='inter') setInput(true,'輪到你發問');
+ else aiAsk();
+}
+async function aiAsk(){
+ const q=E.aiQuestion(G.st); G.pendingQ=q;
+ setInput(false,'審問官正在發問…');
+ await say('inter',q.text);
+ setInput(true,'輪到你回答');
+}
+
+async function finish(res){
+ setInput(false,'審訊結束');
+ const st=G.st;
+ if(window.Music&&music.on){ stopMusic(st.end==='broke'?0.6:2.5); if(st.end==='broke') Music.sting(audio(),'break'); }
+ if(st.end==='broke'){ if(G.myRole==='suspect'&&res.confession&&!G.online) await say('suspect',res.confession); logLine('sys','嫌犯崩潰認罪！'); }
+ else { await say('suspect',C().fail); logLine('a',C().suspect.name+'：'+C().fail); logLine('sys','回合用完，嫌犯撐過了審訊。'); }
+ await wait(2600);
+ showResult();
+}
+
+function showResult(){
+ const st=G.st, sc=E.score(st,G.myRole), win=sc.win, c=C();
+ $('rStamp').textContent=win?'勝利':'落敗';
+ $('rStamp').style.color=$('rStamp').style.borderColor=win?'var(--ok)':'var(--alarm)';
+ $('rTitle').textContent=G.myRole==='inter'?(win?'破案成功！':'嫌犯撐過了審訊'):(win?'你撐過了審訊！':'你被問到崩潰了');
+ $('rScore').textContent=sc.total;
+ $('rRank').textContent=(G.myRole==='inter'?'稱號：':'判決：')+sc.title;
+ $('rParts').innerHTML=sc.parts.map(p=>`<div class="part"><span>${p[0]}</span><div class="bar"><div style="width:${Math.round(p[1]/p[2]*100)}%;background:var(--lamp)"></div></div><span>${p[1]} / ${p[2]}</span></div>`).join('');
+ $('rText').textContent=(st.end==='broke'?c.ending.win:c.ending.lose)+'　使用 '+(st.limit-st.rounds)+' / '+st.limit+' 回合，回合加成 ×'+sc.mul+'。';
+ const key='best.'+st.caseId+'.'+G.myRole, best=store.get(key,null);
+ if(!best||sc.total>best.total){store.set(key,{total:sc.total,title:sc.title});$('rBest').textContent=best?'新紀錄！之前最高 '+best.total+' 分。':'這是你在這個案件的第一筆紀錄。';}
+ else $('rBest').textContent='你的最高紀錄：'+best.total+' 分（'+best.title+'）';
+ if(window.Music&&music.on) Music.sting(audio(),win?'win':'lose');
+ $('resultBox').hidden=false; $('rAgain').focus();
+}
+$('rAgain').onclick=()=>{ if(G&&G.online) leaveOnline(); startSolo(); };
+$('rCases').onclick=()=>{ stopMusic(1); if(G&&G.online) leaveOnline(); openSetup(cfg.mode); };
+$('rHome').onclick=()=>{ stopMusic(1); if(G&&G.online) leaveOnline(); G=null; show('scrHome'); };
+$('leaveBtn').onclick=()=>{ stopMusic(1); if(G&&G.online) leaveOnline(); G=null; if(hasTTS) speechSynthesis.cancel(); show('scrHome'); };
+
+/* ---------- 畫面資訊 ---------- */
+function logLine(cls,text,gain){
+ const p=document.createElement('p'); p.className=cls; p.textContent=text;
+ if(gain!=null){const g=document.createElement('span');g.className='gain'+(gain<0?' down':'');g.textContent=(gain>=0?'+':'')+gain+' 壓力';p.appendChild(g);}
+ $('log').appendChild(p); $('log').scrollTop=$('log').scrollHeight;
+}
+function renderGameStatic(){
+ const c=C();
+ $('gTitle').innerHTML='';
+ const sm=document.createElement('small'); sm.textContent=(G.online?'連線對戰':'單人遊戲')+'・你是'+ROLE_NAME[G.myRole]+'・'+'★'.repeat(c.stars)+'☆'.repeat(5-c.stars);
+ $('gTitle').appendChild(sm); $('gTitle').appendChild(document.createTextNode(c.title));
+ $('nameSus').textContent=c.suspect.name; $('baName').textContent=c.suspect.name;
+ $('nameInter').textContent=interName(); $('bqName').textContent=interName();
+ $('youInter').hidden=G.myRole!=='inter'; $('youSus').hidden=G.myRole!=='suspect';
+ const f=$('fileBox'); f.innerHTML='';
+ const add=(tag,cls,html)=>{const el=document.createElement(tag);if(cls)el.className=cls;el.innerHTML=html;f.appendChild(el);};
+ add('p','',c.brief);
+ add('p','note',`嫌犯：${c.suspect.name}（${c.suspect.age}歲，${c.suspect.job}）・個性：${E.PERS[c.suspect.type].name}`);
+ if(G.myRole==='suspect'){ add('div','secret','<b>你的秘密（只有你知道）</b>'+c.secret); add('div','secret','<b>你準備好的說詞</b>'+c.cover); }
+}
+function renderSide(){
+ if(!G) return;
+ const st=G.st, c=C(), h=E.hints(st,G.myRole), ul=$('hints'); ul.innerHTML='';
+ if(h.length) h.forEach(t=>{const li=document.createElement('li');li.textContent=t;ul.appendChild(li);});
+ else {const li=document.createElement('li');li.className='idle';li.textContent=G.myRole==='inter'?'連續兩回合沒有進展時，這裡會出現建議。':'壓力連續上升時，這裡會提醒你怎麼應對。';ul.appendChild(li);}
+ const ev=$('evid'); ev.innerHTML='';
+ const locked=c.evidence.filter(e=>!st.unlocked.includes(e.id)).length;
+ if(G.myRole==='inter'){
+  $('evidLabel').textContent='證物（點擊出示）';
+  for(const e of c.evidence.filter(e=>st.unlocked.includes(e.id))){
+   const b=document.createElement('button'); b.type='button'; b.className=st.used[e.id]?'done':''; b.dataset.used=st.used[e.id]?'1':'0';
+   b.innerHTML=`<strong>${e.name}<em>${st.used[e.id]?'已出示':'可出示'}</em></strong><span>${e.desc}</span>`;
+   b.onclick=()=>submit('',e.id); b.disabled=true; ev.appendChild(b);
+  }
+  if(locked){const d=document.createElement('div');d.className='locked';d.textContent='還有 '+locked+' 件證物尚未取得，會隨審訊進度出現。';ev.appendChild(d);}
+ } else {
+  $('evidLabel').textContent='警方出示過的證物';
+  const shown=c.evidence.filter(e=>st.used[e.id]);
+  for(const e of shown){const d=document.createElement('div');d.className='ev';d.innerHTML=`<strong>${e.name}</strong><span>${e.desc}</span>`;ev.appendChild(d);}
+  const left=c.evidence.length-shown.length;
+  if(left){const d=document.createElement('div');d.className='locked';d.textContent='警方手上可能還有 '+left+' 件你不知道的證物。';ev.appendChild(d);}
+ }
+ const frac=st.rounds/st.limit, tier=frac>=2/3?['充裕','#203a2a','#8be0a8','#6fbf8a']:frac>=1/3?['普通','#3a3016','#f0cf7a','#e8a93a']:['緊迫','#3e2020','#f19a8e','#d9483b'];
+ $('roundNum').textContent=st.rounds; const tt=$('tierTag'); tt.textContent=tier[0]; tt.style.background=tier[1]; tt.style.color=tier[2];
+ $('roundBar').style.width=Math.round(frac*100)+'%'; $('roundBar').style.background=tier[3];
+}
+
+/* ---------- 單人 ---------- */
+async function startSolo(){
+ if(!voiceOn) toggleVoice(true);
+ const st=E.newGame(cfg.caseId,cfg.limit);
+ newSession(st,cfg.role,false,cfg.looks); startMusic();
+ logLine('sys','審訊開始。'+(cfg.role==='inter'?'你是審問官，讓嫌犯在 '+cfg.limit+' 回合內崩潰認罪。':'你是嫌犯，撐過 '+cfg.limit+' 回合不認罪就贏了。'));
+ if(cfg.role==='inter'){ await say('suspect',C().open); logLine('a',C().suspect.name+'：'+C().open); setInput(true,'輪到你發問'); }
+ else aiAsk();
+}
+
+/* ---------- 連線對戰 ---------- */
+let sock=null, quickTimer=null, lobbyMode=null;
+const onlineOK=()=>typeof window.io==='function';
+function ensureSock(){
+ if(sock) return sock;
+ sock=window.io({transports:['websocket','polling']});
+ sock.on('start',async m=>{
+  clearInterval(quickTimer); if(!voiceOn) toggleVoice(true);
+  newSession(m.state,m.role,true,m.looks); startMusic();
+  logLine('sys','對手已加入！你是'+ROLE_NAME[m.role]+'。');
+  await say('suspect',C().open); logLine('a',C().suspect.name+'：'+C().open);
+  if(m.role==='inter') setInput(true,'輪到你發問'); else setInput(false,'等待審問官發問…');
+ });
+ sock.on('question',async m=>{
+  if(!G||!G.online) return;
+  G.pendingQ=m.q; G.deadline=m.deadline||0;
+  await say('inter',m.q.text);
+  if(G.myRole==='suspect') setInput(true,'輪到你回答'); else setInput(false,'等待嫌犯回答…');
+ });
+ sock.on('turn',async m=>{
+  if(!G||!G.online) return;
+  G.st=m.state; G.deadline=m.deadline||0; G.pendingQ=null;
+  await applyTurn({text:m.res.q},m.res,m.res.reply);
+  if(!G.st.end&&G.online) setInput(G.myRole==='inter',G.myRole==='inter'?'輪到你發問':'等待審問官發問…');
+ });
+ sock.on('opponentLeft',async m=>{
+  if(!G||!G.online) return;
+  toast('對手離線了，改由電腦接手繼續。');
+  G.online=false; G.deadline=0; if(m.state) G.st=m.state;
+  logLine('sys','對手離線，改由電腦接手。');
+  if(G.st.end) return;
+  if(G.myRole==='suspect'){ if(m.pending){G.pendingQ=m.pending; setInput(true,'輪到你回答');} else aiAsk(); }
+  else { if(m.pending){const res=E.resolve(G.st,m.pending,null); await applyTurn(m.pending,res,null);} else setInput(true,'輪到你發問'); }
+ });
+ sock.on('connect_error',()=>{ if(!$('scrLobby').hidden){ $('lobbyText').textContent='連不上伺服器，改由電腦對戰吧。'; } });
+ return sock;
+}
+function leaveOnline(){ if(sock){sock.emit('leave');} clearInterval(quickTimer); if(G) G.online=false; }
+function lobby(title,text,code){
+ $('lobbyTitle').textContent=title; $('lobbyText').textContent=text||'';
+ $('lobbyCode').hidden=!code; $('lobbyCode').textContent=code||''; show('scrLobby');
+}
+$('quickBtn').onclick=()=>{
+ if(!onlineOK()) return;
+ audio(); ensureSock(); lobbyMode='quick';
+ sock.emit('quick',{role:cfg.role,caseId:cfg.caseId,limit:cfg.limit,look:cfg.looks[cfg.role]});
+ let left=20; lobby('尋找對手中…','還有 '+left+' 秒，找不到真人就改由電腦對戰。');
+ clearInterval(quickTimer);
+ quickTimer=setInterval(()=>{left--; $('lobbyText').textContent='還有 '+left+' 秒，找不到真人就改由電腦對戰。'; if(left<=0){clearInterval(quickTimer); sock.emit('cancelQuick'); toast('沒有找到真人對手，改由電腦對戰。'); startSolo();}},1000);
+};
+$('createBtn').onclick=()=>{
+ if(!onlineOK()) return;
+ audio(); ensureSock(); lobbyMode='room';
+ sock.emit('create',{role:cfg.role,caseId:cfg.caseId,limit:cfg.limit,look:cfg.looks[cfg.role]},r=>{
+  if(!r||!r.ok){toast('建立房間失敗，請再試一次。');return;}
+  lobby('把房號告訴朋友','朋友在「連線對戰」輸入這個房號就能加入。你是'+ROLE_NAME[cfg.role]+'。',r.code);
+ });
+};
+$('joinBtn').onclick=()=>{
+ if(!onlineOK()) return;
+ const code=$('joinCode').value.trim().toUpperCase(); if(code.length<4){toast('請輸入 4 碼房號。');return;}
+ audio(); ensureSock();
+ sock.emit('join',{code,look:null},r=>{ if(!r||!r.ok) toast(r&&r.msg?r.msg:'加入失敗。'); });
+};
+$('lobbyAI').onclick=()=>{ clearInterval(quickTimer); if(sock){sock.emit('cancelQuick');sock.emit('leave');} startSolo(); };
+$('lobbyCancel').onclick=()=>{ clearInterval(quickTimer); if(sock){sock.emit('cancelQuick');sock.emit('leave');} openSetup('online'); };
+
+/* ---------- 麥克風（台灣中文） ---------- */
+const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
+let rec=null, listening=false;
+function micMsg(t){$('micNote').textContent=t;$('micNote').hidden=!t;}
+$('micBtn').onclick=()=>{
+ if(!SR){micMsg('這個瀏覽器不支援語音輸入，請改用 Chrome、Edge 或 Safari，或先用打字。');return;}
+ if(listening){rec.stop();return;}
+ if(hasTTS) speechSynthesis.cancel();
+ rec=new SR(); rec.lang='zh-TW'; rec.interimResults=true; rec.continuous=false;
+ let finalText='';
+ rec.onresult=e=>{let s='';for(let i=0;i<e.results.length;i++) s+=e.results[i][0].transcript; $('askInput').value=s; if(e.results[e.results.length-1].isFinal) finalText=s;};
+ rec.onerror=e=>{
+  if(e.error==='not-allowed'||e.error==='service-not-allowed') micMsg('麥克風被封鎖了。預覽頁面不能使用麥克風，把遊戲放到你自己的網站後就能用語音。現在請先用打字。');
+  else if(e.error==='no-speech') micMsg('沒有聽到聲音，請再按一次麥克風說話。');
+  else micMsg('語音辨識失敗，請再試一次或改用打字。');
+ };
+ rec.onend=()=>{listening=false;$('micBtn').classList.remove('on');$('micBtn').setAttribute('aria-label','語音輸入');
+  if(finalText){$('askInput').value='';submit(finalText,null);}};
+ try{rec.start();listening=true;$('micBtn').classList.add('on');$('micBtn').setAttribute('aria-label','停止收音');micMsg('');}
+ catch(err){micMsg('無法啟動麥克風，請改用打字。');}
+};
+
+/* ---------- 設定畫面 ---------- */
+function segButtons(box,items,cur,onPick){
+ box.innerHTML='';
+ for(const it of items){const b=document.createElement('button');b.type='button';b.textContent=it.name;b.setAttribute('aria-pressed',it.id===cur);
+  b.onclick=()=>{onPick(it.id);for(const x of box.children)x.setAttribute('aria-pressed',x===b);};box.appendChild(b);}
+}
+function renderSetup(){
+ const list=$('caseList'); list.innerHTML='';
+ for(const c of E.CASES){
+  const b=document.createElement('button'); b.type='button'; b.className='caseBtn'; b.setAttribute('aria-pressed',c.id===cfg.caseId);
+  const bi=store.get('best.'+c.id+'.inter',null), bs=store.get('best.'+c.id+'.suspect',null);
+  const rec=[bi?'審問官最高 '+bi.total+' 分（'+bi.title+'）':'',bs?'嫌犯最高 '+bs.total+' 分（'+bs.title+'）':''].filter(Boolean).join('・');
+  b.innerHTML=`<strong>${c.title}</strong><span class="st" aria-label="難度${c.stars}星">${'★'.repeat(c.stars)}${'☆'.repeat(5-c.stars)}</span>
+   <small>嫌犯 ${c.suspect.name}・${E.PERS[c.suspect.type].name}・當嫌犯的難度 ${'★'.repeat(6-c.stars)}${rec?'<br>'+rec:''}</small>`;
+  b.onclick=()=>{cfg.caseId=c.id;saveCfg();for(const x of list.children)x.setAttribute('aria-pressed',x===b);};
+  list.appendChild(b);
+ }
+ segButtons($('roleSeg'),[{id:'inter',name:'審問官'},{id:'suspect',name:'嫌犯'}],cfg.role,v=>{cfg.role=v;saveCfg();});
+ segButtons($('limitSeg'),[{id:10,name:'短局 10 回合'},{id:20,name:'標準 20 回合'},{id:30,name:'長局 30 回合'}],cfg.limit,v=>{cfg.limit=v;saveCfg();});
+ segButtons($('lookInter'),R.LOOKS,cfg.looks.inter,v=>{cfg.looks.inter=v;saveCfg();pv.inter=R.buildS(v,'inter');});
+ segButtons($('lookSus'),R.LOOKS,cfg.looks.suspect,v=>{cfg.looks.suspect=v;saveCfg();pv.suspect=R.buildS(v,'suspect');});
+ pv.inter=R.buildS(cfg.looks.inter,'inter'); pv.suspect=R.buildS(cfg.looks.suspect,'suspect');
+}
+const pv={inter:null,suspect:null};
+function openSetup(mode){
+ cfg.mode=mode; renderSetup();
+ $('setupTitle').innerHTML=''; const sm=document.createElement('small'); sm.textContent='準備開庭'; $('setupTitle').appendChild(sm);
+ $('setupTitle').appendChild(document.createTextNode(mode==='solo'?'單人遊戲':'連線對戰'));
+ $('soloActions').hidden=mode!=='solo'; $('onlineActions').hidden=mode==='solo';
+ const ok=onlineOK(); $('onlineWarn').hidden=ok; ['quickBtn','createBtn','joinBtn'].forEach(id=>$(id).disabled=!ok);
+ show('scrSetup');
+}
+$('goSolo').onclick=()=>openSetup('solo');
+$('goOnline').onclick=()=>openSetup('online');
+$('setupBack').onclick=()=>show('scrHome');
+$('startSolo').onclick=()=>startSolo();
+
+/* ---------- 心電圖 ---------- */
+const cv=$('ecg'), cx=cv.getContext('2d');
+function sizeECG(){const r=cv.getBoundingClientRect(),d=window.devicePixelRatio||1;cv.width=Math.max(1,Math.round(r.width*d));cv.height=Math.max(1,Math.round(r.height*d));}
+addEventListener('resize',sizeECG);
+function ecgY(p){if(p<0.08)return Math.sin(p/0.08*Math.PI)*0.12;if(p<0.12)return 0;if(p<0.14)return -0.2*(p-0.12)/0.02;if(p<0.17)return -0.2+1.2*(p-0.14)/0.03;
+ if(p<0.2)return 1-1.4*(p-0.17)/0.03;if(p<0.22)return -0.4+0.4*(p-0.2)/0.02;if(p<0.42)return 0;if(p<0.56)return Math.sin((p-0.42)/0.14*Math.PI)*0.25;return 0;}
+let bpm=70;
+function drawECG(t){
+ const W=cv.width,H=cv.height,d=window.devicePixelRatio||1; if(W<4){sizeECG();return;}
+ cx.clearRect(0,0,W,H); cx.strokeStyle='rgba(79,220,128,0.09)';cx.lineWidth=1;cx.beginPath();
+ for(let x=0;x<W;x+=12*d){cx.moveTo(x,0);cx.lineTo(x,H);} for(let y=0;y<H;y+=12*d){cx.moveTo(0,y);cx.lineTo(W,y);} cx.stroke();
+ cx.beginPath(); const sp=W/3;
+ for(let x=0;x<=W;x+=2){const tt=t-(W-x)/sp, ph=((tt*bpm/60)%1+1)%1, y=H*0.62-ecgY(ph)*H*0.48; x?cx.lineTo(x,y):cx.moveTo(x,y);}
+ cx.strokeStyle=bpm>150?'#ff6a5a':'#4fdc80'; cx.lineWidth=1.6*d; cx.stroke();
+}
+
+/* ---------- 主迴圈 ---------- */
+const homeS={inter:R.buildS('dog','inter'),suspect:R.buildS('comic','suspect')};
+let last=performance.now()/1000, prevJump=0, nextBeat=0, shownKey='';
+function loop(now){
+ const t=now/1000, dt=Math.min(0.1,t-last); last=t;
+ if(!$('scrHome').hidden){
+  const p=50+45*Math.sin(t*0.25);
+  R.render($('homeInter'),homeS.inter,R.interState(clamp(p-10,0,100),p>60?'smug':null,t,false),t);
+  R.render($('homeSus'),homeS.suspect,R.suspectState(clamp(p,0,89),'cry',t,false),t,'cry');
+ } else if(!$('scrSetup').hidden&&pv.inter){
+  const p=50+45*Math.sin(t*0.3);
+  R.render($('pvInter'),pv.inter,R.interState(clamp(100-p,0,100),null,t,false),t);
+  R.render($('pvSus'),pv.suspect,R.suspectState(clamp(p,0,89),'cry',t,false),t,'cry');
+ } else if(G&&!$('scrGame').hidden){
+  const st=G.st;
+  disp.P+=(st.P-disp.P)*Math.min(1,dt*2.2); disp.mood+=(st.mood-disp.mood)*Math.min(1,dt*2.2);
+  const flag=interFlag(), ss=R.suspectState(disp.P,st.breakMode,t,talking.suspect), is=R.interState(disp.mood,flag,t,talking.inter);
+  R.render($('svgSus'),G.S.suspect,ss,t,st.breakMode); R.render($('svgInter'),G.S.inter,is,t);
+  for(const who of ['inter','suspect']){const b=bubbles[who], n=Math.min(b.text.length,Math.floor((t-b.t0)*16)+1), s=b.text.slice(0,n);
+   if(s!==b.shown){$(who==='inter'?'sayInter':'saySus').textContent=s;b.shown=s;}}
+  const key=ss.stage+'|'+is.stage+'|'+Math.round(disp.P)+'|'+Math.round(disp.mood)+'|'+st.breakMode;
+  if(key!==shownKey){shownKey=key;
+   const ch=$('chipSus'); ch.textContent=ss.stage===9?'破防・'+R.BREAK_NAMES[st.breakMode]:R.SUS_STAGES[ss.stage].name; ch.style.background=SC[ss.stage]; ch.style.color=ss.stage>=8?'#fff':'#14100a';
+   $('valSus').textContent='壓力 '+Math.round(disp.P)+'%'; $('barSus').style.width=Math.max(2,disp.P)+'%'; $('barSus').style.background=SC[ss.stage];
+   const ci=$('chipInter'); ci.textContent=R.INTER_STAGES[is.stage].name; ci.style.background=IC[is.stage]; ci.style.color=is.stage===6?'#fff':'#0e1218';
+   $('valInter').textContent='怒氣 '+Math.round(disp.mood)+'%'; $('barInter').style.width=Math.max(2,disp.mood)+'%'; $('barInter').style.background=IC[is.stage];
+  }
+  bpm=st.breakMode==='mad'&&st.end==='broke'?74:Math.round(64+disp.P*1.1+(ss.stage===9?22:0)); $('bpm').textContent=bpm;
+  drawECG(t);
+  if(window.Music) Music.setTension(disp.P/100);
+  const jump=ss.cupJump||is.cupJump; if(jump&&!prevJump) thud(); prevJump=jump;
+  if(voiceOn&&disp.P>=55&&t>=nextBeat){beat(0.4+0.6*ramp(disp.P,55,100));nextBeat=t+60/Math.max(40,bpm);}
+  if(G.online&&G.deadline){const s=Math.max(0,Math.round((G.deadline-Date.now())/1000));$('timer').textContent=s+' 秒';} else $('timer').textContent='';
+ }
+ requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+})();
+
+</script>

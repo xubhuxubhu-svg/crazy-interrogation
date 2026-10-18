@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>瘋狂審訊室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&family=Noto+Serif+TC:wght@900&display=swap">
+<style>
+/* 審訊室：刻意採單一深色場景。上方左右兩格分別是審問官與嫌犯，下方是對話與發問列，右側為卷宗 */
+:root{
+  --room:#121418; --panel:#1b1e24; --panel2:#232730; --line:#323844;
+  --fg:#ece6d8; --muted:#a19d92; --lamp:#e8a93a; --lampInk:#1d1407; --alarm:#d9483b; --ok:#6fbf8a; --cool:#7fb2e8;
+  --display:"Noto Serif TC","Songti TC","PMingLiU",serif;
+  --body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  color-scheme:dark;
+}
+[hidden]{display:none!important}
+*{box-sizing:border-box}
+html,body{background:var(--room);color:var(--fg)}
+body{margin:0;font-family:var(--body);font-size:15px;line-height:1.6;
+  padding-left:max(14px,env(safe-area-inset-left,0px));padding-right:max(14px,env(safe-area-inset-right,0px));padding-block:16px 32px}
+.wrap{max-width:1180px;margin:0 auto;display:flex;flex-direction:column;gap:16px}
+h1,h2,h3{font-family:var(--display);font-weight:900;margin:0;letter-spacing:.04em;text-wrap:balance;line-height:1.25}
+.label{font-size:12px;letter-spacing:.22em;color:var(--muted)}
+.note{font-size:12px;color:var(--muted);line-height:1.7;margin:0}
+button{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px 10px;cursor:pointer;transition:border-color .15s,background .15s}
+button:hover{border-color:#566072}
+button:disabled{opacity:.45;cursor:not-allowed}
+button:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--lamp);outline-offset:2px}
+button[aria-pressed="true"]{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:700}
+.primary{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:900;letter-spacing:.15em;padding:12px 18px;border-radius:10px;font-size:16px}
+.ghost{background:transparent}
+input,select{font:inherit;color:var(--fg);background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:16px;min-width:0}
+select{font-size:14px;width:100%}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;display:flex;flex-direction:column;gap:12px;min-width:0}
+
+/* 首頁 */
+.hero{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);gap:22px;align-items:center;padding-block:10px}
+@media (max-width:820px){.hero{grid-template-columns:minmax(0,1fr)}}
+.hero h1{font-size:clamp(40px,8vw,76px);letter-spacing:.08em}
+.hero h1 small{display:block;font-family:var(--body);font-size:14px;letter-spacing:.4em;color:var(--lamp);margin-bottom:10px;font-weight:700}
+.hero p{margin:12px 0 0;color:var(--muted);max-width:34em}
+.homeBtns{display:flex;flex-direction:column;gap:10px;margin-top:20px;max-width:360px}
+.homeBtns button{text-align:left;padding:14px 16px;display:flex;flex-direction:column;gap:2px}
+.homeBtns button span{font-size:12px;font-weight:400;letter-spacing:0;opacity:.85}
+.duoPreview{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.duoPreview svg{width:100%;height:auto;aspect-ratio:400/360;border-radius:12px;border:1px solid var(--line);display:block}
+.rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.rules .card p{margin:0;font-size:14px;color:var(--muted)}
+
+/* 設定 */
+.setupGrid{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:16px;align-items:start}
+@media (max-width:900px){.setupGrid{grid-template-columns:minmax(0,1fr)}}
+.seg{display:flex;flex-wrap:wrap;gap:6px}
+.seg button{flex:1 1 auto}
+.cases{display:flex;flex-direction:column;gap:8px}
+.caseBtn{text-align:left;display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 12px;padding:12px 14px}
+.caseBtn strong{font-size:16px}
+.caseBtn .st{color:var(--lamp);letter-spacing:.1em;white-space:nowrap;font-size:14px}
+.caseBtn small{color:var(--muted);font-size:12px;grid-column:1/-1}
+.caseBtn[aria-pressed="true"] small,.caseBtn[aria-pressed="true"] .st{color:#4a3510}
+.looks{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:6px}
+.looks button{font-size:13px;padding:7px 4px}
+.previewPair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.previewPair figure{margin:0;display:flex;flex-direction:column;gap:4px}
+.previewPair svg{width:100%;height:auto;aspect-ratio:400/360;border-radius:10px;border:1px solid var(--line);display:block}
+.previewPair figcaption{font-size:12px;color:var(--muted);text-align:center}
+.joinRow{display:flex;gap:8px}
+.joinRow input{flex:1;text-transform:uppercase;letter-spacing:.3em}
+.warn{font-size:13px;color:#f0b38a;background:#2a1f18;border:1px solid #5a3a26;border-radius:8px;padding:8px 10px}
+
+/* 等待室 */
+.lobby{max-width:520px;margin:30px auto;text-align:center;align-items:center}
+.code{font-family:var(--display);font-size:56px;letter-spacing:.3em;color:var(--lamp);line-height:1}
+.spinner{width:42px;height:42px;border-radius:50%;border:4px solid #2a2f38;border-top-color:var(--lamp);animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* 遊戲畫面 */
+.gameTop{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:10px}
+.gameTop h2{font-size:clamp(20px,3vw,30px)}
+.gameTop small{display:block;font-family:var(--body);font-size:12px;letter-spacing:.3em;color:var(--lamp);font-weight:700;margin-bottom:4px}
+.topRight{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+.roundsBox{display:flex;flex-direction:column;gap:4px;min-width:170px}
+.roundsBox .r{display:flex;align-items:baseline;gap:8px;justify-content:space-between}
+.roundsBox b{font-family:var(--display);font-size:26px;font-variant-numeric:tabular-nums;line-height:1}
+.tierTag{font-size:12px;font-weight:700;padding:1px 8px;border-radius:999px}
+.bar{height:7px;background:#2a2f38;border-radius:4px;overflow:hidden}
+.bar div{height:100%;border-radius:4px;transition:width .4s,background .3s}
+.gameGrid{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:16px;align-items:start}
+@media (max-width:980px){.gameGrid{grid-template-columns:minmax(0,1fr)}}
+.stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;min-width:0}
+.duo{display:grid;grid-template-columns:1fr 1fr;gap:1px;background:var(--line)}
+.who{background:var(--panel);display:flex;flex-direction:column;min-width:0}
+.who svg{display:block;width:100%;height:auto;aspect-ratio:400/360;max-width:100%}
+.whoTag{padding:8px 10px 10px;display:flex;flex-direction:column;gap:6px}
+.whoTag .row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.whoTag b{font-size:14px}
+.whoTag .you{font-size:11px;font-weight:700;background:var(--cool);color:#0b1624;padding:1px 7px;border-radius:999px}
+.chip{font-size:12px;font-weight:700;padding:2px 9px;border-radius:999px;background:#5e9c7a;color:#0f120e}
+.val{margin-left:auto;font-size:13px;font-weight:700;font-variant-numeric:tabular-nums}
+.talk{padding:12px 14px;display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line)}
+.bubble{font-size:clamp(15px,2vw,18px);line-height:1.6;min-height:1.6em}
+.bubble b{font-size:.75em;letter-spacing:.12em;margin-right:8px}
+.bubble.q b{color:var(--cool)}
+.bubble.a b{color:var(--lamp)}
+.monitor{display:flex;align-items:center;gap:10px}
+#ecg{flex:1;min-width:0;height:34px;background:#0c110e;border-radius:6px;border:1px solid #1f2a24}
+.bpm{font-variant-numeric:tabular-nums;font-size:12px;color:#7fdc9a;white-space:nowrap}
+.bpm strong{font-size:18px;margin-left:4px}
+.turnLine{padding:8px 14px;font-size:13px;color:var(--muted);border-top:1px solid var(--line);background:#16191e;display:flex;justify-content:space-between;gap:8px}
+.turnLine strong{color:var(--fg)}
+.ask{display:flex;gap:8px;padding:10px 14px 12px;background:#16191e}
+.ask input{flex:1}
+.mic{width:46px;flex:none;display:grid;place-items:center;border-radius:10px;padding:0}
+.mic svg{width:20px;height:20px}
+.mic.on{background:var(--alarm);border-color:var(--alarm);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.6}}
+.send{background:var(--lamp);color:var(--lampInk);border-color:var(--lamp);font-weight:700;padding:10px 16px;border-radius:10px}
+.micNote{padding:0 14px 10px;font-size:13px;color:#f0b38a;background:#16191e}
+.overlay{position:absolute;inset:0;background:rgba(10,11,14,.9);display:flex;align-items:center;justify-content:center;padding:14px;overflow:auto;z-index:5}
+.result{max-width:520px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:10px}
+.stamp{align-self:flex-start;font-size:12px;letter-spacing:.3em;border:1.5px solid;padding:2px 8px;border-radius:4px;font-weight:700}
+.scoreRow{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap}
+.scoreBig{font-family:var(--display);font-size:54px;line-height:1;color:var(--lamp);font-variant-numeric:tabular-nums}
+.rank{font-size:20px;font-weight:900}
+.parts{display:flex;flex-direction:column;gap:6px}
+.part{display:grid;grid-template-columns:5.5em minmax(0,1fr) 3.5em;gap:8px;align-items:center;font-size:13px}
+.part span:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.resBtns{display:flex;gap:8px;flex-wrap:wrap}
+.resBtns button{flex:1 1 auto}
+.side{display:flex;flex-direction:column;gap:12px;min-width:0}
+.side .card{padding:14px;gap:10px}
+#hints{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:8px}
+#hints li{font-size:14px;line-height:1.6;padding:8px 10px;background:#2a2516;border:1px solid #4a3d1c;border-radius:8px;color:#f3dfb0}
+#hints li.idle{background:transparent;border-style:dashed;border-color:var(--line);color:var(--muted);font-size:13px}
+.file p{margin:0;font-size:14px}
+.file .secret{background:#2a1a1c;border:1px solid #5a2c30;border-radius:8px;padding:8px 10px;font-size:13px}
+.file .secret b{color:#f19a8e;display:block;font-size:12px;letter-spacing:.15em}
+.evid{display:flex;flex-direction:column;gap:6px}
+.evid button,.evid .ev{text-align:left;display:flex;flex-direction:column;gap:2px;padding:9px 11px;border:1px solid var(--line);border-radius:8px;background:var(--panel2)}
+.evid strong{font-size:14px;display:flex;justify-content:space-between;gap:8px}
+.evid strong em{font-style:normal;font-size:11px;font-weight:500;color:var(--muted);white-space:nowrap}
+.evid .done strong em{color:var(--ok)}
+.evid span{font-size:12px;color:var(--muted);line-height:1.5}
+.locked{font-size:12px;color:var(--muted);border:1px dashed var(--line);border-radius:8px;padding:8px 10px}
+.log{max-height:260px;overflow:auto;display:flex;flex-direction:column;gap:7px;font-size:14px}
+.log p{margin:0;line-height:1.6}
+.log .q{color:#cfe0ff}
+.log .sys{color:var(--lamp);font-size:13px}
+.log .gain{font-size:11px;font-weight:700;padding:1px 6px;border-radius:999px;margin-left:6px;background:#3e2020;color:#f19a8e;white-space:nowrap}
+.log .gain.down{background:#203a2a;color:#8be0a8}
+footer{font-size:12px;color:var(--muted);text-align:center;letter-spacing:.14em}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--lamp);color:var(--lampInk);font-weight:700;padding:10px 16px;border-radius:10px;z-index:20;max-width:90vw}
+@media (prefers-reduced-motion:reduce){.mic.on,.spinner{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- ===== 首頁 ===== -->
+<section id="scrHome">
+  <div class="hero">
+    <div>
+      <h1><small>心理戰・語音審訊</small>瘋狂審訊室</h1>
+      <p>十回合到三十回合的攻防。當審問官，用證物和心理戰術讓嫌犯崩潰認罪；當嫌犯，守住說詞撐到最後。可以和朋友連線對戰，沒有對手時由電腦接手。</p>
+      <div class="homeBtns">
+        <button class="primary" id="goSolo">單人遊戲<span>和電腦對戰，選擇當審問官或嫌犯</span></button>
+        <button id="goOnline">連線對戰<span>和朋友各演一角，手機電腦都能玩</span></button>
+      </div>
+    </div>
+    <div class="duoPreview" aria-hidden="true"><svg id="homeInter" viewBox="0 0 400 360"></svg><svg id="homeSus" viewBox="0 0 400 360"></svg></div>
+  </div>
+  <div class="rules">
+    <div class="card"><h3>當審問官</h3><p>打字或用說的發問，點證物出示。戳破嫌犯的說詞、找出犯案動機，讓壓力衝到 90% 他就會崩潰認罪。</p></div>
+    <div class="card"><h3>當嫌犯</h3><p>你知道真相，也有一套事先準備好的說詞。面對每件證物想好藉口，前後別矛盾、別說溜嘴，撐過所有回合就贏了。</p></div>
+    <div class="card"><h3>評分與稱號</h3><p>審問官依破案效率、證物運用、戳破說詞等評分，稱號從實習警員到刑事警察局局長；嫌犯則從當庭認罪到無罪釋放。</p></div>
+  </div>
+</section>
+
+<!-- ===== 設定 ===== -->
+<section id="scrSetup" hidden>
+  <div class="gameTop">
+    <h2 id="setupTitle"><small>準備開庭</small>單人遊戲</h2>
+    <button class="ghost" id="setupBack">回首頁</button>
+  </div>
+  <div class="setupGrid" style="margin-top:16px">
+    <div class="card">
+      <div class="label">選擇案件（星數為審問官的難度）</div>
+      <div class="cases" id="caseList"></div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px">
+      <div class="card">
+        <div class="label">你要扮演</div>
+        <div class="seg" id="roleSeg"></div>
+        <div class="label">回合數</div>
+        <div class="seg" id="limitSeg"></div>
+        <p class="note">回合越少越刺激，分數加成越高：短局 ×1.1、標準 ×1.0、長局 ×0.9。</p>
+      </div>
+      <div class="card">
+        <div class="previewPair">
+          <figure><svg id="pvInter" viewBox="0 0 400 360" aria-label="審問官預覽"></svg><figcaption>審問官</figcaption></figure>
+          <figure><svg id="pvSus" viewBox="0 0 400 360" aria-label="嫌犯預覽"></svg><figcaption>嫌犯</figcaption></figure>
+        </div>
+        <div class="label">審問官外觀</div>
+        <div class="looks" id="lookInter"></div>
+        <div class="label">嫌犯外觀</div>
+        <div class="looks" id="lookSus"></div>
+      </div>
+      <div class="card" id="soloActions">
+        <button class="primary" id="startSolo">開始審訊</button>
+      </div>
+      <div class="card" id="onlineActions" hidden>
+        <div class="warn" id="onlineWarn" hidden>連線對戰需要把遊戲放到伺服器（Render）上才能使用。現在可以先玩單人模式。</div>
+        <button class="primary" id="quickBtn">快速配對</button>
+        <button id="createBtn">建立房間，邀請朋友</button>
+        <div class="label">加入朋友的房間</div>
+        <div class="joinRow"><input id="joinCode" maxlength="4" placeholder="房號" aria-label="房號" autocomplete="off"><button id="joinBtn">加入</button></div>
+        <p class="note">快速配對 20 秒內沒有找到真人對手，會自動改由電腦對戰。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== 等待室 ===== -->
+<section id="scrLobby" hidden>
+  <div class="card lobby">
+    <div class="spinner" aria-hidden="true"></div>
+    <h2 id="lobbyTitle">等待對手加入</h2>
+    <div class="code" id="lobbyCode" hidden></div>
+    <p class="note" id="lobbyText"></p>
+    <div class="resBtns" style="width:100%"><button class="primary" id="lobbyAI">改與電腦對戰</button><button id="lobbyCancel">取消</button></div>
+  </div>
+</section>
+
+<!-- ===== 遊戲 ===== -->
+<section id="scrGame" hidden>
+  <div class="gameTop">
+    <h2 id="gTitle"><small id="gSub"></small></h2>
+    <div class="topRight">
+      <div class="roundsBox">
+        <div class="r"><span class="label">剩餘回合</span><span class="tierTag" id="tierTag">充裕</span><b id="roundNum">20</b></div>
+        <div class="bar"><div id="roundBar"></div></div>
+      </div>
+      <button class="ghost" id="leaveBtn">離開</button>
+    </div>
+  </div>
+  <div class="gameGrid" style="margin-top:14px">
+    <section class="stage" aria-label="偵訊室">
+      <div class="duo">
+        <div class="who">
+          <svg id="svgInter" viewBox="0 0 400 360" role="img" aria-label="審問官動畫"></svg>
+          <div class="whoTag"><div class="row"><b id="nameInter">審問官</b><span class="you" id="youInter" hidden>你</span><span class="chip" id="chipInter">冷靜</span><span class="val" id="valInter">怒氣 10%</span></div><div class="bar"><div id="barInter"></div></div></div>
+        </div>
+        <div class="who">
+          <svg id="svgSus" viewBox="0 0 400 360" role="img" aria-label="嫌犯動畫"></svg>
+          <div class="whoTag"><div class="row"><b id="nameSus">嫌犯</b><span class="you" id="youSus" hidden>你</span><span class="chip" id="chipSus">囂張挑釁</span><span class="val" id="valSus">壓力 5%</span></div><div class="bar"><div id="barSus"></div></div></div>
+        </div>
+      </div>
+      <div class="talk">
+        <div class="bubble q" aria-live="polite"><b id="bqName">審問官</b><span id="sayInter">……</span></div>
+        <div class="bubble a" aria-live="polite"><b id="baName">嫌犯</b><span id="saySus">……</span></div>
+        <div class="monitor"><canvas id="ecg" aria-hidden="true"></canvas><div class="bpm">嫌犯心跳<strong id="bpm">70</strong></div></div>
+      </div>
+      <div class="turnLine"><span id="turnText">準備中</span><strong id="timer"></strong></div>
+      <form class="ask" id="askForm">
+        <button type="button" class="mic" id="micBtn" aria-label="語音輸入"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+        <input id="askInput" autocomplete="off" placeholder="輸入你要說的話，或按麥克風" aria-label="你的發言">
+        <button type="submit" class="send" id="sendBtn">送出</button>
+      </form>
+      <div class="micNote" id="micNote" hidden></div>
+      <div class="overlay" id="resultBox" hidden>
+        <div class="result">
+          <span class="stamp" id="rStamp">結案</span>
+          <h2 id="rTitle"></h2>
+          <div class="scoreRow"><span class="scoreBig" id="rScore">0</span><span class="note">/ 100</span><span class="rank" id="rRank"></span></div>
+          <div class="parts" id="rParts"></div>
+          <p class="note" id="rText"></p>
+          <p class="note" id="rBest"></p>
+          <div class="resBtns"><button class="primary" id="rAgain">再玩一次</button><button id="rCases">換案件</button><button id="rHome">回首頁</button></div>
+        </div>
+      </div>
+    </section>
+
+    <aside class="side">
+      <section class="card" aria-label="建議下一步"><div class="label">建議下一步</div><ul id="hints"></ul></section>
+      <section class="card file" aria-label="卷宗"><div class="label">卷宗</div><div id="fileBox"></div></section>
+      <section class="card" aria-label="證物"><div class="label" id="evidLabel">證物</div><div class="evid" id="evid"></div></section>
+      <section class="card" aria-label="審訊紀錄"><div class="label">審訊紀錄</div><div class="log" id="log"></div></section>
+      <section class="card" aria-label="語音設定">
+        <div class="label">語音與音效</div>
+        <button id="voiceBtn" aria-pressed="false">開啟語音與音效</button>
+        <select id="voiceSus" aria-label="嫌犯聲音"></select>
+        <select id="voiceInter" aria-label="審問官聲音"></select>
+        <p class="note" id="voiceNote">兩個角色的語速、音高會隨情緒改變。</p>
+      </section>
+      <section class="card" aria-label="背景音樂">
+        <div class="label">背景音樂</div>
+        <button id="musicBtn" aria-pressed="true">關閉背景音樂</button>
+        <select id="musicStyle" aria-label="曲風">
+          <option value="auto">曲風：依案件自動搭配</option>
+          <option value="oppress">曲風：壓抑對峙（低頻嗡鳴、時鐘滴答）</option>
+          <option value="advance">曲風：步步進逼（不和諧鋼琴、斷奏弦樂）</option>
+          <option value="nordic">曲風：北歐冷調（大提琴、遠處心跳）</option>
+        </select>
+        <label class="note" for="musicVol">音量</label>
+        <input type="range" id="musicVol" min="0" max="100" value="50" style="accent-color:var(--lamp);padding:0">
+        <p class="note">音樂由程式即時合成，嫌犯壓力越高越緊湊。</p>
+      </section>
+    </aside>
+  </div>
+</section>
+
+<footer>遊戲製作：Eric Hu</footer>
+</div>
+<div class="toast" id="toast" hidden></div>
+
+<script src="socket.io/socket.io.js"></script>
+<script src="engine.js"></script>
+<script src="render.js"></script>
+<script src="music.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

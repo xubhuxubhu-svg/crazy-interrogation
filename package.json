@@ -1,0 +1,16 @@
+{
+  "name": "crazy-interrogation-room",
+  "version": "1.0.0",
+  "description": "瘋狂審訊室：心理戰語音審訊遊戲（單人與連線對戰）",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "express": "^4.19.2",
+    "socket.io": "^4.7.5"
+  }
+}
